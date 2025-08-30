@@ -1,0 +1,13 @@
+{
+  "expo": {
+    "name": "Expo Weather",
+    "slug": "expo-weather",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "assetBundlePatterns": ["**/*"],
+    "ios": { "supportsTablet": true },
+    "android": {},
+    "web": { "bundler": "metro" }
+  }
+}

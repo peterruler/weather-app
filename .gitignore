@@ -1,0 +1,66 @@
+# Node dependencies and logs
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+*.log
+
+# Expo / build outputs
+.expo/
+.expo-shared/
+dist/
+web-build/
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Test coverage
+coverage/
+
+# Certificates and keys (never commit secrets)
+*.jks
+*.keystore
+*.p8
+*.p12
+*.key
+*.pem
+*.cer
+*.mobileprovision
+
+# Editor / IDE
+.idea/
+*.iml
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# TypeScript build info
+*.tsbuildinfo
+
+# React Native (native build outputs)
+android/.gradle/
+android/app/build/
+android/.idea/
+android/local.properties
+ios/build/
+ios/DerivedData/
+ios/Pods/
+
+# Optional (managed workflow): uncomment to ignore prebuild native projects
+# ios/
+# android/
+
+# Misc
+*.orig.*
+*.swp
+*.swo
