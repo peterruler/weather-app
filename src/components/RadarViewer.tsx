@@ -155,7 +155,13 @@ export default function RadarViewer({ lat, lon, styles }: Props) {
     const current = frames[index];
     return (
       <View>
-        <Image source={{ uri: current }} style={{ width: '100%', height: 260, borderRadius: 12 }} resizeMode="cover" />
+        <View style={{ backgroundColor: '#ffffff', borderRadius: 12, overflow: 'hidden' }}>
+          <Image
+            source={{ uri: current }}
+            style={{ width: '100%', height: 260 }}
+            resizeMode="cover"
+          />
+        </View>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 8 }}>
           <View style={{ flexDirection: 'row', gap: 12 }}>
             <TouchableOpacity accessibilityRole="button" onPress={() => setIndex((i) => (i - 1 + frames.length) % frames.length)}>
