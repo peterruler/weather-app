@@ -155,7 +155,7 @@ export default function RadarViewer({ lat, lon, styles }: Props) {
     const current = frames[index];
     return (
       <View>
-        <View style={{ backgroundColor: '#ffffff', borderRadius: 12, overflow: 'hidden' }}>
+        <View style={styles?.radarContainer ?? { backgroundColor: '#0f1720', borderRadius: 12, overflow: 'hidden' }}>
           <Image
             source={{ uri: current }}
             style={{ width: '100%', height: 260 }}

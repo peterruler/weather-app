@@ -87,6 +87,8 @@ export default function App() {
             buttonPrimaryBorder: "#0a6ad1",
             buttonText: "#eef6ff",
             placeholder: "#999",
+            // Higher-contrast backdrop for radar/maps in dark mode
+            mapBg: "#0f1720",
           }
         : {
             bg: "#f4f7fb",
@@ -103,6 +105,8 @@ export default function App() {
             buttonPrimaryBorder: "#0a6ad1",
             buttonText: "#eef6ff",
             placeholder: "#666",
+            // Higher-contrast backdrop for radar/maps in light mode
+            mapBg: "#e9eff6",
           },
     [isDark]
   );
@@ -773,6 +777,7 @@ const makeStyles = (theme: {
   buttonPrimaryBorder: string;
   buttonText: string;
   placeholder: string;
+  mapBg: string;
 }) =>
 StyleSheet.create({
   safe: {
@@ -962,5 +967,13 @@ StyleSheet.create({
     color: '#ffffff',
     fontSize: 18,
     fontWeight: '700',
+  },
+  // Used by Wetter‑Karten radar to ensure a good-contrast backdrop
+  radarContainer: {
+    backgroundColor: theme.mapBg,
+    borderRadius: 12,
+    overflow: 'hidden',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: theme.border,
   },
 });
