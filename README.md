@@ -9,7 +9,7 @@ Eine moderne Wetter-App, entwickelt mit React Native und Expo, die aktuelle Wett
 
 ## Demo
 
-- [Demo on expo.dev](https://snack.expo.dev/@petethegreat/weather-app)
+- [Demo on expo.dev](https://snack.expo.dev/@petethegreat/github.com-peterruler-weather-app)
 
 ## Features ✨
 
