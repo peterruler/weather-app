@@ -45,9 +45,13 @@ export default function ForecastScreen({ styles, isDark, bgImage, data, location
               <FlatList
                 data={forecastDays}
                 keyExtractor={(item) => item.date}
-                ItemSeparatorComponent={() => <View style={styles.separator} />}
+                ItemSeparatorComponent={() => (
+                  <View style={[styles.separator, { backgroundColor: '#ffffff' }]} />
+                )}
                 renderItem={({ item }) => {
                   const de = translateWeather({ description: item.cond });
+                  // Swiss German variant: replace "ß" with "ss" for forecast text
+                  const swissDesc = (de.deDesc || item.cond).replace(/ß/g, 'ss');
                   const dt = new Date(item.date);
                   const wd = weekdayAbbr(dt);
                   const dateStr = dt.toLocaleDateString('de-DE');
@@ -55,7 +59,7 @@ export default function ForecastScreen({ styles, isDark, bgImage, data, location
                     <View style={styles.row}>
                       <Text style={styles.label}>{wd}, {dateStr}</Text>
                       <Text style={styles.value}>
-                        {item.min}° / {item.max}°C — {de.deDesc || item.cond}
+                        {item.min}° / {item.max}°C — {swissDesc}
                       </Text>
                     </View>
                   );
