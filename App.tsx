@@ -87,8 +87,8 @@ export default function App() {
             buttonPrimaryBorder: "#0a6ad1",
             buttonText: "#eef6ff",
             placeholder: "#999",
-            // Higher-contrast backdrop for radar/maps in dark mode
-            mapBg: "#0f1720",
+            // Higher-contrast backdrop for radar/maps in dark mode (yellow)
+            mapBg: "#FDE68A",
           }
         : {
             bg: "#f4f7fb",
@@ -105,8 +105,8 @@ export default function App() {
             buttonPrimaryBorder: "#0a6ad1",
             buttonText: "#eef6ff",
             placeholder: "#666",
-            // Higher-contrast backdrop for radar/maps in light mode
-            mapBg: "#e9eff6",
+            // Higher-contrast backdrop for radar/maps in light mode (soft yellow)
+            mapBg: "#FEF3C7",
           },
     [isDark]
   );
