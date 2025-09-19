@@ -10,13 +10,12 @@
     "jsx": "react-jsx",
     "strict": true,
     "noImplicitAny": true,
-    "moduleResolution": "node",
+    
     "esModuleInterop": true,
     "skipLibCheck": true,
     "resolveJsonModule": true,
     "types": [
       "react",
-      "react-native",
       "jest"
     ]
   },

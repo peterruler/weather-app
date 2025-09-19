@@ -19,6 +19,14 @@ import {
 import * as Location from "expo-location";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { computeSavedAfterRemove, computeSavedAfterSave, getCurrentPositionWithRetry } from "./src/utils";
+import { NavigationContainer, DarkTheme as NavDarkTheme, DefaultTheme as NavLightTheme } from "@react-navigation/native";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { createMaterialTopTabNavigator } from "@react-navigation/material-top-tabs";
+import { enableScreens } from 'react-native-screens';
+import { RootStackParamList, RootTabParamList } from "./src/navigation/types";
+import WeatherScreenView from "./src/screens/WeatherScreen";
+import ForecastScreenView from "./src/screens/ForecastScreen";
+import CardsScreenView from "./src/screens/CardsScreen";
 
 type WeatherResponse = {
   name: string;
@@ -38,6 +46,10 @@ type InfoRow = { key: string; label: string; value: string };
 
 const API_KEY = "ca4ab639490b58b65967f8a7816cb8d4";
 
+const Stack = createNativeStackNavigator<RootStackParamList>();
+const Tab = createMaterialTopTabNavigator<RootTabParamList>();
+enableScreens(true);
+
 export default function App() {
   const systemScheme = useColorScheme();
   const [location, setLocation] = useState<string>("");
@@ -46,6 +58,14 @@ export default function App() {
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState<string[]>([]);
   const [themeMode, setThemeMode] = useState<"light" | "dark">("dark");
+  const [forecastLoading, setForecastLoading] = useState<boolean>(false);
+  const [forecastError, setForecastError] = useState<string | null>(null);
+  const [forecastDays, setForecastDays] = useState<{
+    date: string;
+    min: number;
+    max: number;
+    cond: string;
+  }[]>([]);
 
   const isDark = themeMode === "dark" || (!themeMode && systemScheme === "dark");
 
@@ -125,6 +145,67 @@ export default function App() {
       setLoading(false);
     }
   }, []);
+
+  const fetchForecast = useCallback(
+    async (query: { city?: string; lat?: number; lon?: number }) => {
+      if (!query.city && (query.lat == null || query.lon == null)) return;
+      setForecastLoading(true);
+      setForecastError(null);
+      setForecastDays([]);
+      try {
+        let url = "";
+        if (query.city) {
+          const encoded = encodeURIComponent(query.city.trim());
+          url = `https://api.openweathermap.org/data/2.5/forecast?q=${encoded}&units=metric&appid=${API_KEY}`;
+        } else {
+          url = `https://api.openweathermap.org/data/2.5/forecast?lat=${query.lat}&lon=${query.lon}&units=metric&appid=${API_KEY}`;
+        }
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(`Vorhersage fehlgeschlagen: ${res.status}`);
+        const json = await res.json();
+        // Group by day, compute min/max and pick noon condition
+        const byDay: Record<string, { mins: number[]; maxs: number[]; conds: string[] }>= {};
+        for (const item of json.list || []) {
+          const dt = new Date((item.dt as number) * 1000);
+          const key = dt.toISOString().slice(0, 10);
+          const temp = item.main?.temp as number;
+          const cond = (item.weather?.[0]?.description as string) || "";
+          if (!byDay[key]) byDay[key] = { mins: [], maxs: [], conds: [] };
+          byDay[key].mins.push(item.main?.temp_min ?? temp);
+          byDay[key].maxs.push(item.main?.temp_max ?? temp);
+          // Prefer midday conditions: collect all and we will pick around 12:00 later
+          byDay[key].conds.push(`${dt.getHours()}:${cond}`);
+        }
+        const days = Object.keys(byDay)
+          .sort()
+          .slice(0, 5)
+          .map((k) => {
+            const d = byDay[k];
+            const min = Math.round(Math.min(...d.mins));
+            const max = Math.round(Math.max(...d.maxs));
+            // pick condition closest to 12:00
+            let chosen = d.conds[0] ?? "";
+            let bestDelta = 999;
+            for (const c of d.conds) {
+              const h = parseInt(c.split(":")[0] || "0", 10);
+              const delta = Math.abs(12 - h);
+              if (delta < bestDelta) {
+                bestDelta = delta;
+                chosen = c;
+              }
+            }
+            const cond = chosen.split(":").slice(1).join(":");
+            return { date: k, min, max, cond };
+          });
+        setForecastDays(days);
+      } catch (e: any) {
+        setForecastError(e?.message || "Vorhersage konnte nicht geladen werden.");
+      } finally {
+        setForecastLoading(false);
+      }
+    },
+    []
+  );
 
   const fetchWeatherByCoords = useCallback(
     async (lat: number, lon: number) => {
@@ -329,6 +410,9 @@ export default function App() {
     ) {
       return require("./assets/img/rainy.png");
     }
+    if (cond.includes("snow") || cond.includes("sleet")) {
+      try { return require("./assets/img/snowy.png"); } catch { return require("./assets/img/cloudy.png"); }
+    }
     if (cond.includes("cloud")) {
       return require("./assets/img/cloudy.png");
     }
@@ -368,15 +452,33 @@ export default function App() {
     ];
   }, [data, translateWeather]);
 
-  return (
+  const WeatherCards = ({ w }: { w: WeatherResponse }) => {
+    const de = translateWeather(w.weather?.[0]);
+    const cards = [
+      { key: "city", label: "Ort", value: `${w.name}${w.sys?.country ? ", " + w.sys.country : ""}` },
+      { key: "temp", label: "Temperatur", value: `${Math.round(w.main.temp)}°C` },
+      { key: "feels", label: "Gefühlt", value: `${Math.round(w.main.feels_like)}°C` },
+      { key: "minmax", label: "Min/Max", value: `${Math.round(w.main.temp_min)}° / ${Math.round(w.main.temp_max)}°C` },
+      { key: "humidity", label: "Luftfeuchtigkeit", value: `${w.main.humidity}%` },
+      { key: "wind", label: "Wind", value: `${w.wind?.speed ?? 0} m/s` },
+      { key: "cond", label: "Bedingung", value: de.deDesc || "-" },
+    ];
+    return (
+      <View style={styles.cardsGrid}>
+        {cards.map((c) => (
+          <View key={c.key} style={styles.infoCard}>
+            <Text style={styles.infoCardLabel}>{c.label}</Text>
+            <Text style={styles.infoCardValue}>{c.value}</Text>
+          </View>
+        ))}
+      </View>
+    );
+  };
+
+  const WeatherScreen = () => (
     <SafeAreaView style={styles.safe}>
       <ExpoStatusBar style={isDark ? "light" : "dark"} />
-      <ImageBackground
-        source={bgImage ?? undefined}
-        style={styles.bg}
-        resizeMode="cover"
-        imageStyle={styles.bgImage}
-      >
+      <ImageBackground source={bgImage ?? undefined} style={styles.bg} resizeMode="cover" imageStyle={styles.bgImage}>
         <View style={styles.container}>
           <Text style={styles.title}>Wetter</Text>
 
@@ -391,11 +493,7 @@ export default function App() {
               style={styles.input}
               autoCapitalize="words"
             />
-            <TouchableOpacity
-              accessibilityRole="button"
-              onPress={onSubmit}
-              style={styles.button}
-            >
+            <TouchableOpacity accessibilityRole="button" onPress={onSubmit} style={styles.button}>
               <Text style={styles.buttonText}>Suchen</Text>
             </TouchableOpacity>
           </View>
@@ -460,15 +558,9 @@ export default function App() {
                     {data.name}
                     {data.sys?.country ? `, ${data.sys.country}` : ""}
                   </Text>
-                  <Text style={styles.condition}>
-                    {translateWeather(data.weather?.[0]).deMain}
-                  </Text>
+                  <Text style={styles.condition}>{translateWeather(data.weather?.[0]).deMain}</Text>
                 </View>
-                <Image
-                  source={heroImage}
-                  style={styles.hero}
-                  resizeMode="contain"
-                />
+                <Image source={heroImage} style={styles.hero} resizeMode="contain" />
               </View>
 
               <FlatList
@@ -483,11 +575,7 @@ export default function App() {
                       <Text style={styles.label}>{item.label}</Text>
                       {isCond ? (
                         <View style={styles.valueRow}>
-                          <Image
-                            source={heroImage}
-                            style={styles.iconSmall}
-                            resizeMode="contain"
-                          />
+                          <Image source={heroImage} style={styles.iconSmall} resizeMode="contain" />
                           <Text style={styles.value}>{item.value}</Text>
                         </View>
                       ) : (
@@ -500,14 +588,173 @@ export default function App() {
             </View>
           ) : (
             <View style={styles.center}>
-              <Text style={[styles.muted, styles.alwaysWhite]}>
-                Suche nach einer Stadt, um das Wetter zu sehen.
-              </Text>
+              <Text style={[styles.muted, styles.alwaysWhite]}>Suche nach einer Stadt, um das Wetter zu sehen.</Text>
             </View>
           )}
         </View>
       </ImageBackground>
     </SafeAreaView>
+  );
+
+  const ForecastScreen = () => {
+    useEffect(() => {
+      const city = data?.name || location.trim();
+      if (city) fetchForecast({ city });
+    }, [data?.name, location]);
+
+    return (
+      <SafeAreaView style={styles.safe}>
+        <ExpoStatusBar style={isDark ? "light" : "dark"} />
+        <ImageBackground source={bgImage ?? undefined} style={styles.bg} resizeMode="cover" imageStyle={styles.bgImage}>
+          <View style={styles.container}>
+            <Text style={styles.title}>Fünf Tages Prognose</Text>
+            <View style={styles.content}>
+              {forecastLoading ? (
+                <View style={styles.center}>
+                  <ActivityIndicator size="large" color="#9bdcff" />
+                  <Text style={styles.muted}>Vorhersage wird geladen...</Text>
+                </View>
+              ) : forecastError ? (
+                <View style={styles.center}>
+                  <Text style={styles.error}>{forecastError}</Text>
+                </View>
+              ) : forecastDays.length > 0 ? (
+                <FlatList
+                  data={forecastDays}
+                  keyExtractor={(item) => item.date}
+                  ItemSeparatorComponent={() => <View style={styles.separator} />}
+                  renderItem={({ item }) => (
+                    <View style={styles.row}>
+                      <Text style={styles.label}>{new Date(item.date).toLocaleDateString()}</Text>
+                      <Text style={styles.value}>
+                        {item.min}° / {item.max}°C — {item.cond}
+                      </Text>
+                    </View>
+                  )}
+                />
+              ) : (
+                <View style={styles.center}>
+                  <Text style={[styles.muted, styles.alwaysWhite]}>Bitte wähle zuerst einen Ort auf dem Wetter-Tab.</Text>
+                </View>
+              )}
+            </View>
+          </View>
+        </ImageBackground>
+      </SafeAreaView>
+    );
+  };
+
+  const CardsScreen = () => (
+    <SafeAreaView style={styles.safe}>
+      <ExpoStatusBar style={isDark ? "light" : "dark"} />
+      <ImageBackground source={bgImage ?? undefined} style={styles.bg} resizeMode="cover" imageStyle={styles.bgImage}>
+        <View style={styles.container}>
+          <Text style={styles.title}>Wetter-Karten</Text>
+          <View style={styles.content}>
+            {!data ? (
+              <View style={styles.center}>
+                <Text style={[styles.muted, styles.alwaysWhite]}>Bitte wähle zuerst einen Ort auf dem Wetter-Tab.</Text>
+              </View>
+            ) : (
+              <>
+                <View style={styles.headerRow}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.location}>
+                      {data.name}
+                      {data.sys?.country ? `, ${data.sys.country}` : ""}
+                    </Text>
+                    <Text style={styles.condition}>{translateWeather(data.weather?.[0]).deMain}</Text>
+                  </View>
+                  <Image source={heroImage} style={styles.hero} resizeMode="contain" />
+                </View>
+                <WeatherCards w={data} />
+              </>
+            )}
+          </View>
+        </View>
+      </ImageBackground>
+    </SafeAreaView>
+  );
+
+  const navTheme = isDark ? NavDarkTheme : NavLightTheme;
+
+  return (
+    <NavigationContainer theme={navTheme}>
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="RootTabs">
+          {() => (
+            <Tab.Navigator
+              screenOptions={{
+                tabBarIndicatorStyle: { backgroundColor: theme.buttonText },
+                tabBarStyle: { backgroundColor: "transparent" },
+              }}
+            >
+              <Tab.Screen name="Weather" options={{ title: "Wetter" }}>
+                {() => (
+                  <WeatherScreenView
+                    styles={styles}
+                    isDark={isDark}
+                    themeMode={themeMode}
+                    setThemeMode={async (m) => {
+                      setThemeMode(m);
+                      try { await AsyncStorage.setItem("@theme_mode", m); } catch {}
+                    }}
+                    theme={theme}
+                    bgImage={bgImage}
+                    location={location}
+                    setLocation={setLocation}
+                    onSubmit={onSubmit}
+                    useMyLocation={useMyLocation}
+                    saveLocation={saveLocation}
+                    saved={saved}
+                    onPressSaved={onPressSaved}
+                    removeLocation={removeLocation}
+                    loading={loading}
+                    error={error}
+                    data={data}
+                    translateWeather={translateWeather}
+                    heroImage={heroImage}
+                    infoList={infoList}
+                  />
+                )}
+              </Tab.Screen>
+              <Tab.Screen name="Forecast" options={{ title: "Fünf Tages Prognose" }}>
+                {() => (
+                  <ForecastScreenView
+                    styles={styles}
+                    isDark={isDark}
+                    bgImage={bgImage}
+                    data={data}
+                    location={location}
+                    forecastLoading={forecastLoading}
+                    forecastError={forecastError}
+                    forecastDays={forecastDays}
+                    fetchForecast={fetchForecast}
+                    translateWeather={translateWeather}
+                  />
+                )}
+              </Tab.Screen>
+              <Tab.Screen name="Cards" options={{ title: "Wetter-Karten" }}>
+                {() => (
+                  <CardsScreenView
+                    styles={styles}
+                    bgImage={bgImage}
+                    data={data}
+                    heroImage={heroImage}
+                    translateWeather={translateWeather}
+                    isDark={isDark}
+                    setThemeMode={async (m) => {
+                      setThemeMode(m);
+                      try { await AsyncStorage.setItem("@theme_mode", m); } catch {}
+                    }}
+                  />
+                )}
+              </Tab.Screen>
+            </Tab.Navigator>
+          )}
+        </Stack.Screen>
+      </Stack.Navigator>
+    </NavigationContainer>
   );
 }
 
@@ -692,5 +939,28 @@ StyleSheet.create({
   separator: {
     height: 1,
     backgroundColor: theme.border,
+  },
+  cardsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+  },
+  infoCard: {
+    width: '48%',
+    backgroundColor: theme.cardBg,
+    borderRadius: 12,
+    padding: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: theme.border,
+  },
+  infoCardLabel: {
+    color: theme.muted,
+    marginBottom: 6,
+    fontSize: 13,
+  },
+  infoCardValue: {
+    color: '#ffffff',
+    fontSize: 18,
+    fontWeight: '700',
   },
 });

@@ -6,6 +6,11 @@ Built with OpenAI Codex
 
 Eine moderne Wetter-App, entwickelt mit React Native und Expo, die aktuelle Wetterdaten für beliebige Städte weltweit anzeigt.
 
+
+## Demo
+
+- [Demo on expo.dev](https://snack.expo.dev/@petethegreat/weather-app)
+
 ## Features ✨
 
 - 🌍 Weltweite Wettersuche nach Städten
@@ -69,6 +74,7 @@ npm start -- --web
 npm run ios      # iOS Simulator
 npm run android  # Android Emulator  
 npm run web      # Web Browser
+yarn start --web # Web Browser
 ```
 
 ### Tests ausführen
