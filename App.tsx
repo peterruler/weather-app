@@ -306,6 +306,7 @@ export default function App() {
   }, [fetchWeatherByCoords, saveLocation]);
 
   const conditions = data?.weather?.[0]?.main ?? "";
+  const conditionDesc = (data?.weather?.[0]?.description ?? "").toLowerCase();
 
   // Deutsch-Übersetzungen für OpenWeatherMap
   const translateWeather = useCallback((w?: { id?: number; main?: string; description?: string }) => {
@@ -407,25 +408,30 @@ export default function App() {
 
   const heroImage = useMemo(() => {
     const cond = conditions.toLowerCase();
+    const text = `${cond} ${conditionDesc}`; // combine for robust matching
+
     if (
-      cond.includes("rain") ||
-      cond.includes("drizzle") ||
-      cond.includes("thunder")
+      text.includes("snow") ||
+      text.includes("sleet")
+    ) {
+      try { return require("./assets/img/snowy.png"); } catch { return require("./assets/img/cloudy.png"); }
+    }
+    if (
+      text.includes("rain") ||
+      text.includes("drizzle") ||
+      text.includes("thunder")
     ) {
       return require("./assets/img/rainy.png");
     }
-    if (cond.includes("snow") || cond.includes("sleet")) {
-      try { return require("./assets/img/snowy.png"); } catch { return require("./assets/img/cloudy.png"); }
-    }
-    if (cond.includes("cloud")) {
+    if (text.includes("cloud")) {
       return require("./assets/img/cloudy.png");
     }
-    if (cond.includes("clear") || cond.includes("sun")) {
+    if (text.includes("clear") || text.includes("sun")) {
       return require("./assets/img/sunny.png");
     }
     // Fallbacks
     return require("./assets/img/cloudy.png");
-  }, [conditions]);
+  }, [conditions, conditionDesc]);
 
   const infoList: InfoRow[] = useMemo(() => {
     if (!data) return [];

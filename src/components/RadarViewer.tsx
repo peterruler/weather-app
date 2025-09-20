@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Image, Platform, Text, TouchableOpacity, View } from 'react-native';
 import { buildSingleRadarFrameURLs, sortSitesByDistance } from '../lib/radarLookup';
+import { EU_RADARS } from '../lib/radars/europe';
+import type { RadarSite } from '../lib/radars/types';
 import { pickAvailableSwissRadar } from '../lib/pickAvailableSwissRadar';
 import { buildCompositeTileURL, getCompositeTimeline } from '../lib/radarComposite';
 
@@ -18,6 +20,7 @@ export default function RadarViewer({ lat, lon, styles }: Props) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [radarId, setRadarId] = useState<string | null>(null);
+  const [radarName, setRadarName] = useState<string | null>(null);
   const [frames, setFrames] = useState<string[]>([]);
   const [times, setTimes] = useState<number[]>([]);
   const [index, setIndex] = useState<number>(0);
@@ -60,6 +63,7 @@ export default function RadarViewer({ lat, lon, styles }: Props) {
             if (urls.length === 0 || ts.length === 0) throw new Error('Keine Radarframes in Index.');
             if (cancelled) return;
             setRadarId(site.id);
+            setRadarName(site.name || site.id);
             setFrames(urls);
             setTimes(ts);
             setIndex(urls.length - 1);
@@ -82,6 +86,8 @@ export default function RadarViewer({ lat, lon, styles }: Props) {
             const ts = (json.images ?? []).slice(-6).map((it) => it.time);
             if (urls.length === 0 || ts.length === 0) throw new Error('Keine Radarframes in Index.');
             setRadarId(swId);
+            const found: RadarSite | undefined = EU_RADARS.find((s) => s.id === swId);
+            setRadarName(found?.name || swId);
             setFrames(urls);
             setTimes(ts);
             setIndex(urls.length - 1);
@@ -92,6 +98,7 @@ export default function RadarViewer({ lat, lon, styles }: Props) {
               if (ts.length > 0) {
                 const urls = ts.map((t) => buildCompositeTileURL(t, lat as number, lon as number, 7));
                 setRadarId('composite');
+                setRadarName('Komposit');
                 setFrames(urls);
                 setTimes(ts);
                 setIndex(urls.length - 1);
@@ -186,11 +193,11 @@ export default function RadarViewer({ lat, lon, styles }: Props) {
           ))}
         </View>
         {radarId && (
-          <Text style={[styles.muted, styles.alwaysWhite, { textAlign: 'center', marginTop: 8 }]}>Radar: {radarId === 'composite' ? 'Komposit' : radarId}</Text>
+          <Text style={[styles.muted, styles.alwaysWhite, { textAlign: 'center', marginTop: 8 }]}>Radar: {radarName ?? (radarId === 'composite' ? 'Komposit' : radarId)}</Text>
         )}
       </View>
     );
-  }, [canLocate, loading, error, frames, index, styles, radarId, times, playing]);
+  }, [canLocate, loading, error, frames, index, styles, radarId, radarName, times, playing]);
 
   return (
     <View style={{ marginTop: 12 }}>
