@@ -23,9 +23,6 @@ export default function CardsScreen({ styles, bgImage, data, heroImage, translat
         <View style={styles.container}>
           <View style={{ flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', gap: 8 }}>
             <Text style={styles.title}>Niederschlagsradar</Text>
-            {radarInfo?.id === 'composite' && (
-              <Text style={styles.condition}>toe radar und Radar: Komposit</Text>
-            )}
           </View>
           <View style={styles.content}>
             {!data ? (
@@ -59,6 +56,11 @@ export default function CardsScreen({ styles, bgImage, data, heroImage, translat
               </>
             )}
           </View>
+          {radarInfo?.id === 'composite' && (
+            <View style={{ paddingTop: 8, paddingBottom: 8 }}>
+              <Text style={[styles.muted, styles.alwaysWhite, { textAlign: 'center' }]}>toe radar und Radar: Komposit</Text>
+            </View>
+          )}
         </View>
       </ImageBackground>
     </SafeAreaView>
