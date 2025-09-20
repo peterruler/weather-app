@@ -108,8 +108,8 @@ export default function WeatherScreen(props: Props) {
                     {data.sys?.country ? `, ${data.sys.country}` : ''}
                   </Text>
                   <Text style={styles.condition}>{translateWeather(data.weather?.[0]).deMain}</Text>
-                  {radarInfo?.name && (
-                    <Text style={styles.condition}>Radar: {radarInfo.name}</Text>
+                  {radarInfo?.name && radarInfo?.id && (
+                    <Text style={styles.condition}>Radar: {radarInfo.name} ({radarInfo.id})</Text>
                   )}
                 </View>
                 <Image source={heroImage} style={styles.hero} resizeMode="contain" />
