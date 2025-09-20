@@ -17,7 +17,7 @@ Eine moderne Wetter-App, entwickelt mit React Native und Expo, die aktuelle Wett
 - 📍 **GPS-basierte Standortermittlung** - Automatisches Wetter für den aktuellen Standort
 - 💾 **Persistente Standort-Speicherung** - Bis zu 5 zuletzt gesuchte Orte werden gespeichert
 - 🌡️ Anzeige von Temperatur, Luftfeuchtigkeit und Windgeschwindigkeit
-- 🎨 Dynamische Icons je nach Wetterlage (sonnig, bewölkt, regnerisch)
+- 🎨 Dynamische Icons je nach Wetterlage (sonnig, bewölkt, regnerisch, schneefall)
 - 📱 Responsive Design für iOS, Android und Web
 - 🇩🇪 **Vollständige deutsche Übersetzungen** für alle Wetterbedingungen
 - ⚡ TypeScript für bessere Code-Qualität
@@ -29,6 +29,7 @@ Die App zeigt verschiedene Wettericons abhängig von den aktuellen Bedingungen:
 - ☀️ Sonnig
 - ☁️ Bewölkt  
 - 🌧️ Regnerisch
+- ❄️ Schneefall
 
 ### Neue Features
 - 📍 **"Meinen Standort verwenden"** - Button für GPS-basierte Wetterabfrage
