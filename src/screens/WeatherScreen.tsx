@@ -22,10 +22,11 @@ type Props = {
   translateWeather: (w?: { id?: number; main?: string; description?: string }) => { deMain: string; deDesc: string };
   heroImage: any;
   infoList: { key: string; label: string; value: string }[];
+  radarInfo?: { id: string; name: string } | null;
 };
 
 export default function WeatherScreen(props: Props) {
-  const { styles, isDark, themeMode, setThemeMode, theme, bgImage, location, setLocation, onSubmit, useMyLocation, saveLocation, saved, onPressSaved, removeLocation, loading, error, data, translateWeather, heroImage, infoList } = props;
+  const { styles, isDark, themeMode, setThemeMode, theme, bgImage, location, setLocation, onSubmit, useMyLocation, saveLocation, saved, onPressSaved, removeLocation, loading, error, data, translateWeather, heroImage, infoList, radarInfo } = props;
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -107,6 +108,9 @@ export default function WeatherScreen(props: Props) {
                     {data.sys?.country ? `, ${data.sys.country}` : ''}
                   </Text>
                   <Text style={styles.condition}>{translateWeather(data.weather?.[0]).deMain}</Text>
+                  {radarInfo?.name && (
+                    <Text style={styles.condition}>Radar: {radarInfo.name}</Text>
+                  )}
                 </View>
                 <Image source={heroImage} style={styles.hero} resizeMode="contain" />
               </View>
@@ -144,4 +148,3 @@ export default function WeatherScreen(props: Props) {
     </SafeAreaView>
   );
 }
-

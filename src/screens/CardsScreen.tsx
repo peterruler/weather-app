@@ -10,9 +10,10 @@ type Props = {
   translateWeather: (w?: { id?: number; main?: string; description?: string }) => { deMain: string; deDesc: string };
   isDark: boolean;
   setThemeMode: (m: 'light' | 'dark') => void;
+  onRadarChosen?: (info: { id: string; name: string }) => void;
 };
 
-export default function CardsScreen({ styles, bgImage, data, heroImage, translateWeather, isDark, setThemeMode }: Props) {
+export default function CardsScreen({ styles, bgImage, data, heroImage, translateWeather, isDark, setThemeMode, onRadarChosen }: Props) {
   const lat = (data as any)?.coord?.lat as number | undefined;
   const lon = (data as any)?.coord?.lon as number | undefined;
   return (
@@ -48,7 +49,7 @@ export default function CardsScreen({ styles, bgImage, data, heroImage, translat
                     <Text style={[styles.buttonText, styles.secondaryButtonText]}>{isDark ? '☀️ Hell' : '🌙 Dunkel'}</Text>
                   </TouchableOpacity>
                 </View>
-                <RadarViewer lat={lat} lon={lon} styles={styles} />
+                <RadarViewer lat={lat} lon={lon} styles={styles} onRadarChosen={onRadarChosen} />
               </>
             )}
           </View>

@@ -10,13 +10,14 @@ type Props = {
   lat?: number | null;
   lon?: number | null;
   styles: any;
+  onRadarChosen?: (info: { id: string; name: string }) => void;
 };
 
 type ProductsIndex = {
   images?: Array<{ time: number; formats?: string[] }>;
 };
 
-export default function RadarViewer({ lat, lon, styles }: Props) {
+export default function RadarViewer({ lat, lon, styles, onRadarChosen }: Props) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [radarId, setRadarId] = useState<string | null>(null);
@@ -64,6 +65,7 @@ export default function RadarViewer({ lat, lon, styles }: Props) {
             if (cancelled) return;
             setRadarId(site.id);
             setRadarName(site.name || site.id);
+            onRadarChosen?.({ id: site.id, name: site.name || site.id });
             setFrames(urls);
             setTimes(ts);
             setIndex(urls.length - 1);
@@ -87,7 +89,9 @@ export default function RadarViewer({ lat, lon, styles }: Props) {
             if (urls.length === 0 || ts.length === 0) throw new Error('Keine Radarframes in Index.');
             setRadarId(swId);
             const found: RadarSite | undefined = EU_RADARS.find((s) => s.id === swId);
-            setRadarName(found?.name || swId);
+            const name = found?.name || swId;
+            setRadarName(name);
+            onRadarChosen?.({ id: swId, name });
             setFrames(urls);
             setTimes(ts);
             setIndex(urls.length - 1);
@@ -99,6 +103,7 @@ export default function RadarViewer({ lat, lon, styles }: Props) {
                 const urls = ts.map((t) => buildCompositeTileURL(t, lat as number, lon as number, 7));
                 setRadarId('composite');
                 setRadarName('Komposit');
+                onRadarChosen?.({ id: 'composite', name: 'Komposit' });
                 setFrames(urls);
                 setTimes(ts);
                 setIndex(urls.length - 1);

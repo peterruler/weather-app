@@ -66,6 +66,7 @@ export default function App() {
     max: number;
     cond: string;
   }[]>([]);
+  const [radarInfo, setRadarInfo] = useState<{ id: string; name: string } | null>(null);
 
   const isDark = themeMode === "dark" || (!themeMode && systemScheme === "dark");
 
@@ -725,6 +726,7 @@ export default function App() {
                     translateWeather={translateWeather}
                     heroImage={heroImage}
                     infoList={infoList}
+                    radarInfo={radarInfo}
                   />
                 )}
               </Tab.Screen>
@@ -757,6 +759,7 @@ export default function App() {
                       setThemeMode(m);
                       try { await AsyncStorage.setItem("@theme_mode", m); } catch {}
                     }}
+                    onRadarChosen={(info) => setRadarInfo(info)}
                   />
                 )}
               </Tab.Screen>
