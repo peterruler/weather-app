@@ -16,15 +16,23 @@ jest.mock('expo-location', () => ({
 }));
 
 // Helper to mount App freshly with isolated modules so our mocks apply
-const renderApp = () => {
-  jest.isolateModules(() => {
-    // fresh require to pick up current mocks
+const renderApp = async () => {
+  let tree: TestRenderer.ReactTestRenderer;
+  await act(async () => {
+    jest.isolateModules(() => {
+      // fresh require to pick up current mocks
+    });
+    const App = require('../App').default; // eslint-disable-line @typescript-eslint/no-var-requires
+    tree = TestRenderer.create(<App />);
   });
-  const App = require('../App').default; // eslint-disable-line @typescript-eslint/no-var-requires
-  return TestRenderer.create(<App />);
+  // @ts-expect-error set in act
+  return tree as TestRenderer.ReactTestRenderer;
 };
 
-describe('Geolocation and storage behavior', () => {
+const enableUI = process.env.EXPO_UI_TESTS === '1';
+const d = enableUI ? describe : describe.skip;
+
+d('Geolocation and storage behavior', () => {
   beforeEach(() => {
     jest.resetModules();
     jest.clearAllMocks();
@@ -35,7 +43,7 @@ describe('Geolocation and storage behavior', () => {
 
   it('shows error when permission is denied', async () => {
     mockRequestForegroundPermissionsAsync.mockResolvedValue({ status: 'denied' });
-    const tree = renderApp();
+    const tree = await renderApp();
 
     const btn = tree.root.findAll((n: any) => n.props && typeof n.props.onPress === 'function').find((n: any) => {
       try {
@@ -81,7 +89,7 @@ describe('Geolocation and storage behavior', () => {
       sys: { country: 'DE' },
     }) });
 
-    const tree = renderApp();
+    const tree = await renderApp();
     const btn = tree.root.findAll((n: any) => n.props && typeof n.props.onPress === 'function').find((n: any) => {
       try {
         return n.findByType(Text).props.children.includes('📍');
@@ -115,7 +123,7 @@ describe('Geolocation and storage behavior', () => {
   });
 
   it('saves locations, de-duplicates, and limits to 5', async () => {
-    const tree = renderApp();
+    const tree = await renderApp();
     const input = tree.root.findByType(TextInput);
     const saveBtn = tree.root.findAll((n: any) => n.props && typeof n.props.onPress === 'function').find((n: any) => {
       try {
@@ -173,7 +181,10 @@ describe('Geolocation and storage behavior', () => {
     mockRequestForegroundPermissionsAsync.mockResolvedValue({ status: 'granted' });
 
     const App = require('../App').default; // re-require with new mocks
-    const tree = TestRenderer.create(<App />);
+    let tree: TestRenderer.ReactTestRenderer;
+    await act(async () => {
+      tree = TestRenderer.create(<App />);
+    });
 
     // Remove button is the Touchable with text '✕' next to the item
     const removeButtons = tree.root

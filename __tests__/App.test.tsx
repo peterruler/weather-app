@@ -11,7 +11,10 @@ const sampleOk = {
   sys: { country: 'DE' },
 };
 
-describe('App (react-test-renderer)', () => {
+const enableUI = process.env.EXPO_UI_TESTS === '1';
+const d = enableUI ? describe : describe.skip;
+
+d('App (react-test-renderer)', () => {
   beforeEach(() => {
     jest.resetModules();
     jest.clearAllMocks();

@@ -1,6 +1,6 @@
 /** @type {import('jest').Config} */
 module.exports = {
-  preset: 'react-native',
+  preset: 'jest-expo',
   testMatch: ['**/__tests__/**/*.test.[jt]s?(x)'],
   setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
   watchman: false,
@@ -8,13 +8,11 @@ module.exports = {
   collectCoverage: true,
   coverageReporters: ['text', 'html', 'lcov'],
   collectCoverageFrom: [
-    '<rootDir>/src/lib/**/*.ts',
+    '<rootDir>/src/**/*.{ts,tsx}',
     '!**/node_modules/**',
     '!**/dist/**',
     '!**/babel.config.js',
-    '!**/jest.config.js',
-  ],
-  transformIgnorePatterns: [
-    'node_modules/(?!(@react-native|react-native|react-clone-referenced-element|@react-native-async-storage)/)'
+    '!**/jest*.config.js',
   ],
 };
+
