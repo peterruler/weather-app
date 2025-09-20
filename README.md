@@ -108,7 +108,8 @@ expo-weather/
 │   └── img/               # Wetter-Icons
 │       ├── sunny.png
 │       ├── cloudy.png
-│       └── rainy.png
+│       ├── rainy.png
+│       └── snowy.png
 ├── __tests__/             # Test-Dateien
 ├── package.json           # Projekt-Konfiguration
 ├── app.json              # Expo-Konfiguration
