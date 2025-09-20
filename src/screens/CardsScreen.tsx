@@ -11,16 +11,22 @@ type Props = {
   isDark: boolean;
   setThemeMode: (m: 'light' | 'dark') => void;
   onRadarChosen?: (info: { id: string; name: string }) => void;
+  radarInfo?: { id: string; name: string } | null;
 };
 
-export default function CardsScreen({ styles, bgImage, data, heroImage, translateWeather, isDark, setThemeMode, onRadarChosen }: Props) {
+export default function CardsScreen({ styles, bgImage, data, heroImage, translateWeather, isDark, setThemeMode, onRadarChosen, radarInfo }: Props) {
   const lat = (data as any)?.coord?.lat as number | undefined;
   const lon = (data as any)?.coord?.lon as number | undefined;
   return (
     <SafeAreaView style={styles.safe}>
       <ImageBackground source={bgImage ?? undefined} style={styles.bg} resizeMode="cover" imageStyle={styles.bgImage}>
         <View style={styles.container}>
-          <Text style={styles.title}>Niederschlagsradar</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', gap: 8 }}>
+            <Text style={styles.title}>Niederschlagsradar</Text>
+            {radarInfo?.id === 'composite' && (
+              <Text style={styles.condition}>toe radar und Radar: Komposit</Text>
+            )}
+          </View>
           <View style={styles.content}>
             {!data ? (
               <View style={styles.center}>

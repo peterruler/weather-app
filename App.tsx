@@ -760,6 +760,7 @@ export default function App() {
                       try { await AsyncStorage.setItem("@theme_mode", m); } catch {}
                     }}
                     onRadarChosen={(info) => setRadarInfo(info)}
+                    radarInfo={radarInfo}
                   />
                 )}
               </Tab.Screen>
