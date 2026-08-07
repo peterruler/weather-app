@@ -6,6 +6,8 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ### Added
 
+- Added an asset-free `snack/` import mirror with its own Expo entry point, exact native and web Expo SDK 54 dependencies, explicit `sdkVersion: 54.0.0`, disabled runtime updates, and content-addressed remote image assets to bypass Expo Snack's current GitHub asset-forwarding failure.
+- Documented the required Snack GitHub import settings: repository URL, `snack` folder path, and `main` branch.
 - Added this changelog and the contributor/agent guide in `CLAUDE.md`.
 - Added Expo location permission descriptions for reproducible configuration.
 - Added executable `install.sh` and `run.sh` workflows for locked installation, Expo Go, web development, cache clearing, simulators, and production web export.

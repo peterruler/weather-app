@@ -6,6 +6,8 @@ This file is the durable implementation guide for contributors and coding agents
 
 - Expo SDK 54.0.36 / React Native 0.81.5 weather app targeting iOS, Android, the saved Expo Snack, Expo Go, and web.
 - Saved Snack: `https://snack.expo.dev/@petethegreat/github.com-peterruler-weather-app`.
+- GitHub-to-Snack imports must use repository `https://github.com/peterruler/weather-app`, folder path `snack`, and branch `main`. The root import currently fails inside Expo's import service while it forwards otherwise valid repository assets.
+- `snack/` is the asset-free SDK-54 mirror used by the GitHub importer. It uses content-addressed Expo-hosted image URLs, an explicit `index.js` entry for isolated local web validation, exact runtime dependency pins, `sdkVersion: 54.0.0`, and disabled runtime updates.
 - UI language: German.
 - Package manager: npm. `package-lock.json` is the source of truth.
 - Expo and React Native dependencies are exact-pinned to the SDK 54.0.36-compatible set. Do not update them implicitly. Use `npm run expo:align` to audit the pins and only use `npm run expo:align:write` when an SDK alignment change is intentional.
@@ -42,6 +44,8 @@ Use Node.js 20.19 or newer. Do not install a global Expo CLI; use the project-lo
 ## Architecture and conventions
 
 - `App.tsx` owns API/state orchestration and navigation.
+- Keep the code under `snack/App.tsx` and `snack/src/` synchronized whenever their root counterparts change. Do not add binary files, shell scripts, or other non-code extensions to `snack/`; Expo's importer classifies extensions other than `.tsx`, `.ts`, `.js`, `.jsx`, `.json`, and `.md` as assets.
+- Keep `snack/package.json` native and web runtime pins synchronized with the root runtime dependencies and keep `snack/app.json` fixed to Expo SDK 54 with runtime updates disabled until an intentional full SDK migration is validated.
 - Keep callbacks passed into network-loading effects stable with `useCallback` to avoid repeated requests.
 - `src/screens/` contains the three tab screens.
 - App root provides `SafeAreaProvider`; screens use `SafeAreaView` from `react-native-safe-area-context` because React Native's built-in component is deprecated.
@@ -83,6 +87,6 @@ npx expo-doctor@latest
 npm run web:export
 ```
 
-For device validation, start `./run.sh`, scan the QR code with an Expo Go client that supports SDK 54, grant foreground location access, select a city, and open the radar tab. Also verify the saved Snack after repository changes have been imported or re-saved there.
+For device validation, start `./run.sh`, scan the QR code with an Expo Go client that supports SDK 54, grant foreground location access, select a city, and open the radar tab. Also verify the saved Snack after repository changes have been imported from folder path `snack` and re-saved there.
 
 Disabling Expo Updates freezes this app's OTA behavior, not the externally managed Expo Go or Snack runtime. Expo Go only supports selected/current SDKs, so long-term reproducibility requires a development build. Expo Go is a development preview, not a deployment target. Native releases should use a future EAS Build setup; production web output is the static `dist/` export.

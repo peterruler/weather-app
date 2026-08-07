@@ -8,6 +8,17 @@ Eine deutschsprachige Wetter-App für iOS, Android, Expo Go und Web. Sie zeigt a
 
 Die gespeicherte Vorschau ist unter [github.com/peterruler/weather-app auf Expo Snack](https://snack.expo.dev/@petethegreat/github.com-peterruler-weather-app) erreichbar. Ein gespeicherter Snack übernimmt lokale Repository-Änderungen nicht automatisch; nach einem Push muss die GitHub-Version dort erneut importiert beziehungsweise gespeichert werden.
 
+Der direkte Root-Import trifft derzeit einen Fehler im Expo-Importserver, sobald Repository-Assets weitergeleitet werden (`Failed to upload file asset`, Validierungsfehler `"$": Required`). Die Dateien selbst sind gültig und lassen sich über denselben Expo-Endpunkt einzeln sowie parallel hochladen. Für einen zuverlässigen Neuimport enthält das Repository deshalb die assetfreie SDK-54-Ansicht im Ordner `snack`:
+
+1. In Snack **Import git repository** öffnen.
+2. Repository URL: `https://github.com/peterruler/weather-app`
+3. **Show advanced options** wählen.
+4. Folder path: `snack`
+5. Branch name: `main`
+6. **Import repository** wählen und den importierten Snack speichern.
+
+Der Snack-Ordner nutzt in Expo gespeicherte, inhaltsadressierte Bild-URLs statt binärer Repository-Assets. `snack/app.json` setzt `sdkVersion` ausdrücklich auf `54.0.0`, deaktiviert Laufzeit-Updates, `snack/package.json` hält alle Laufzeitabhängigkeiten exakt auf dem geprüften SDK-54-Stand und `snack/index.js` ermöglicht eine isolierte lokale Web-Prüfung. Der Root der lokalen App bleibt davon unberührt und verwendet weiterhin seine lokalen Grafiken.
+
 ## Technischer Stand
 
 - Expo SDK 54.0.36
@@ -152,6 +163,7 @@ weather-app/
 ├── .npmrc                     # Exakte npm-Versionen statt Bereichsangaben
 ├── scripts/
 │   └── upgrade-expo.js        # Explizite SDK-54-Ausrichtung
+├── snack/                     # Assetfreie, SDK-54-fixierte Snack-Importansicht
 ├── install.sh                 # Reproduzierbare Installation
 ├── run.sh                     # Einheitlicher Start/Export
 ├── CLAUDE.md                  # Wartungs- und Agentenleitfaden
