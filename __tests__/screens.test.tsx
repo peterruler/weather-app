@@ -33,6 +33,8 @@ const mockReactNative = () => {
       },
       Image: mk('Image'),
       ImageBackground: mk('ImageBackground'),
+      Linking: { openURL: jest.fn() },
+      Pressable: mk('Pressable'),
       SafeAreaView: mk('SafeAreaView'),
       Text: mk('Text'),
       TextInput: mk('TextInput'),
@@ -61,7 +63,6 @@ d('WeatherScreen UI', () => {
   it('renders empty state hint', async () => {
     let tree: TestRenderer.ReactTestRenderer;
     await act(async () => {
-      jest.resetModules();
       mockReactNative();
       const WeatherScreen = require('../src/screens/WeatherScreen').default;
       tree = TestRenderer.create(
@@ -94,7 +95,7 @@ d('WeatherScreen UI', () => {
     const txts = (tree as any).root.findAllByType(require('react-native').Text);
     expect(txts.map((t: any) => t.props.children).join(' ')).toContain('Suche');
     // @ts-expect-error
-    tree.unmount();
+    await act(async () => { tree.unmount(); });
   });
 
   it('renders data with radar name', async () => {
@@ -104,7 +105,6 @@ d('WeatherScreen UI', () => {
     ];
     let tree: TestRenderer.ReactTestRenderer;
     await act(async () => {
-      jest.resetModules();
       mockReactNative();
       const WeatherScreen = require('../src/screens/WeatherScreen').default;
       tree = TestRenderer.create(
@@ -135,28 +135,30 @@ d('WeatherScreen UI', () => {
     });
     // @ts-expect-error
     const texts = (tree as any).root.findAllByType(require('react-native').Text).map((t: any) => t.props.children);
-    expect(texts.join(' ')).toContain('Radar: Komposit (composite)');
+    const rendered = texts.flat(Infinity).join(' ');
+    expect(rendered).toContain('Komposit');
+    expect(rendered).toContain('composite');
+    expect(rendered).toContain('Open-Meteo');
     // @ts-expect-error
     await act(async () => { (tree as any).unmount(); });
   });
 });
 
 d('Cards and Forecast Screens', () => {
-  it('CardsScreen renders dark toggle and RadarViewer placeholder', async () => {
-    const data: any = {
-      name: 'Berlin', sys: { country: 'DE' }, weather: [{ id: 800, main: 'Clear', description: 'clear sky' }],
-      coord: { lat: 1, lon: 2 },
-    };
+  it('CardsScreen renders the default radar without weather data', async () => {
     let tree: TestRenderer.ReactTestRenderer;
     await act(async () => {
-      jest.resetModules();
       mockReactNative();
+      jest.doMock('../src/components/RadarViewer', () => {
+        const React = require('react');
+        return { __esModule: true, default: (props: any) => React.createElement('RadarViewer', props) };
+      });
       const CardsScreen = require('../src/screens/CardsScreen').default;
       tree = TestRenderer.create(
       <CardsScreen
         styles={styles}
         bgImage={null}
-        data={data}
+        data={null}
         heroImage={{}}
         translateWeather={() => ({ deMain: 'Klar', deDesc: 'Klarer Himmel' })}
         isDark={false}
@@ -168,7 +170,11 @@ d('Cards and Forecast Screens', () => {
     });
     // @ts-expect-error
     const texts = (tree as any).root.findAllByType(require('react-native').Text).map((t: any) => t.props.children);
-    expect(texts.join(' ')).toContain('Niederschlagsradar');
+    expect(texts.flat(Infinity).join(' ')).toContain('Zürich (Standard)');
+    // @ts-expect-error
+    const radar = (tree as any).root.findByType('RadarViewer');
+    expect(radar.props.lat).toBeCloseTo(47.3769);
+    expect(radar.props.lon).toBeCloseTo(8.5417);
     // @ts-expect-error
     await act(async () => { (tree as any).unmount(); });
   });
@@ -180,7 +186,6 @@ d('Cards and Forecast Screens', () => {
     ];
     let tree: TestRenderer.ReactTestRenderer;
     await act(async () => {
-      jest.resetModules();
       mockReactNative();
       const ForecastScreen = require('../src/screens/ForecastScreen').default;
       tree = TestRenderer.create(
@@ -200,8 +205,9 @@ d('Cards and Forecast Screens', () => {
     });
     // @ts-expect-error
     const texts = (tree as any).root.findAllByType(require('react-native').Text).map((t: any) => t.props.children);
-    expect(texts.join(' ')).toContain('Berlin');
+    expect(texts.flat(Infinity).join(' ')).toContain('light rain');
+    expect(texts.flat(Infinity).join(' ')).toContain('Open-Meteo');
     // @ts-expect-error
-    (tree as any).unmount();
+    await act(async () => { (tree as any).unmount(); });
   });
 });

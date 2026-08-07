@@ -1,0 +1,56 @@
+# Changelog
+
+All notable changes to this project are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
+
+## Unreleased
+
+### Added
+
+- Added this changelog and the contributor/agent guide in `CLAUDE.md`.
+- Added Expo location permission descriptions for reproducible configuration.
+- Added executable `install.sh` and `run.sh` workflows for locked installation, Expo Go, web development, cache clearing, simulators, and production web export.
+- Added a read-only-by-default `scripts/upgrade-expo.js` alignment helper, adapted from the referenced frontend Snack, with an explicit `--write` mode.
+- Added `.npmrc` with exact-version saving to prevent routine installs from drifting the Expo runtime baseline.
+- Pinned Jest Expo's optional React Server Components peer to a React-19.1-compatible version so npm resolves the SDK 54 test toolchain without bypassing peer checks.
+- Excluded that test-only peer from Expo's generic version checker because Expo's suggested 19.1.4 build is both deprecated for a high-severity issue and incompatible with SDK 54's React 19.1.0 peer range.
+- Selected React Native Testing Library 13.3.3 because its supported React range includes SDK 54's React 19.1; version 14's renderer requires React 19.2.
+- Added the SDK-matched Expo Babel preset directly so Jest resolution does not depend on npm's hoisting layout.
+- Overrode Expo Metro's vulnerable build-time PostCSS 8.4 release with patched PostCSS 8.5.26; the production web export validates compatibility.
+
+### Changed
+
+- Aligned and exact-pinned the app to Expo SDK 54.0.36, React Native 0.81.5, and React 19.1 for the saved Snack and the currently supported physical-device Expo Go workflow.
+- Updated React Navigation, testing, and TypeScript packages and added repeatable validation scripts.
+- Aligned React Navigation's native package to the patch required by its current nested elements package.
+- Removed the deprecated `@testing-library/jest-native` package; React Native Testing Library now provides its matchers directly.
+- Standardized dependency management on npm and documented the Node.js 20.19 minimum required by Expo SDK 54.
+- Disabled Expo Updates and automatic update checks so release builds stay on their bundled JavaScript instead of accepting OTA changes.
+- Replaced the unreliable single-radar page with an Expo Go/web-compatible RainViewer composite animation over CARTO/OpenStreetMap tiles, including location marker, observed/forecast labels, retry handling, and required attribution.
+- Decoupled radar loading from weather requests: the radar opens on a Zurich default when no weather location is available.
+- Isolated radar side effects in app-level weather tests while retaining dedicated radar URL, timeline, and screen coverage.
+- Replaced authenticated OpenWeatherMap requests with key-free Open-Meteo geocoding, current-weather, and daily-forecast requests, eliminating the 401 failure after GPS positioning.
+- Reverse-geocoded the GPS position before requesting weather so the current-location result has a useful place label even though the weather endpoint is coordinate based.
+- Added regression tests proving GPS coordinates reach Open-Meteo without an `appid` credential and covering WMO-code, current-weather, forecast, and missing-place conversion.
+- Added visible Open-Meteo attribution links to every screen displaying its weather data, as required by the provider's CC BY 4.0 terms.
+- Stabilized the radar selection callback so parent renders do not restart network loading.
+- Replaced legacy single-site radar tests with coverage for documented RainViewer timelines, tile geometry, URL construction, and failure handling.
+- Switched the default Jest configuration to the SDK-matched Expo preset for Expo environment-variable support.
+- Added a dedicated ESLint TypeScript project so tests remain lintable while excluded from the application typecheck.
+- Added a root safe-area provider, migrated rendered screens to `react-native-safe-area-context`, and updated UI tests for React 19 module identity and concurrent forecast requests.
+- Added a deterministic safe-area Jest mock for native-free UI rendering.
+- Corrected stale UI-test expectations and enabled FlatList rendering for saved-location interaction coverage.
+- Removed React module resets from renderer tests and made native touch-target lookup resilient to host-wrapper depth.
+- Made the FlatList Jest mock render synchronously, eliminating post-test VirtualizedList timers.
+- Switched the radar base layer from the restricted OpenStreetMap public tile server to CORS-enabled CARTO tiles with complete OpenStreetMap/CARTO attribution after live endpoint validation.
+- Removed deprecated React Native web pointer-event and image resize style usage found during browser validation.
+- Prevented an empty-radar error flash during initial timeline loading and made `run.sh` reject the example API-key placeholder.
+- Updated the lint configuration to `eslint-config-universe` 16 and Prettier 3, removing outdated TypeScript-ESLint development dependencies.
+- Documented the remaining upstream Expo CLI audit advisory and made the regular lint output actionable-error-only.
+- Documented that disabling OTA updates does not freeze the independently managed Expo Go or Snack runtime and that a development build is the durable fallback.
+- Rewrote the README with prerequisites, environment settings, script-based setup, Expo Go instructions, validation, deployment distinctions, radar behavior, attribution, and troubleshooting.
+- Updated stale provider references in the project review document.
+
+### Removed
+
+- Removed undocumented RainViewer single-site lookup code and stale Swiss radar identifiers.
+- Removed the OpenWeatherMap API-key and `.env` requirement from installation and startup.

@@ -23,5 +23,9 @@
     "**/*.ts",
     "**/*.tsx"
   ],
+  "exclude": [
+    "__tests__",
+    "jest.setup.ts"
+  ],
   "extends": "expo/tsconfig.base"
 }

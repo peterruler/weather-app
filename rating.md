@@ -44,7 +44,7 @@ Eine sehr gut umgesetzte Wetter-App, die moderne Entwicklungspraktiken befolgt u
 - ✅ **Persistente Standort-Speicherung** - Bis zu 5 Favoriten-Orte gespeichert
 - ✅ **Dark Mode Support** - Automatische Anpassung an Systemeinstellungen
 - ✅ **5-Tage-Wettervorhersage** - Erweiterte Prognose mit detaillierten Tageswerten
-- ✅ **Wetter-Karten & Radar** - Interaktive Karten mit Schweizer Radardaten
+- ✅ **Wetter-Karten & Radar** - Animiertes RainViewer-Komposit mit CARTO/OpenStreetMap-Grundkarte
 - ✅ Aktuelle Wetterdaten (Temperatur, Luftfeuchtigkeit, Wind)
 - ✅ **Erweiterte Wettericons** - Vollständiger Icon-Satz inklusive Schnee-Wetter (`snowy.png`)
 - ✅ **Deutsche Wetterbeschreibungen** - Vollständige Lokalisierung aller Bedingungen
@@ -52,7 +52,7 @@ Eine sehr gut umgesetzte Wetter-App, die moderne Entwicklungspraktiken befolgt u
 - ✅ Offline-Fallback für Bilder
 
 ### API Integration: ⭐⭐⭐⭐⭐
-- **OpenWeatherMap**: Zuverlässige Wetter-API
+- **Open-Meteo**: Schlüssel-freie Ortssuche, aktuelle Wetterdaten und Vorhersage
 - **Error Handling**: Spezifische Behandlung für 404 und andere HTTP-Fehler
 - **Data Validation**: Sichere Behandlung von API-Responses
 
@@ -94,7 +94,7 @@ Eine sehr gut umgesetzte Wetter-App, die moderne Entwicklungspraktiken befolgt u
 - ✅ **Dark Mode Support** - Automatische Systemerkennung
 - ✅ **Deutsche Vollübersetzung aller Wetterbedingungen**
 - ✅ **5-Tage-Wettervorhersage** - Umfassende Forecast-Funktionalität
-- ✅ **Wetter-Karten-Integration** - Radar-Viewer mit Schweizer Daten
+- ✅ **Wetter-Karten-Integration** - Plattformübergreifender RainViewer-Radar
 - ✅ **Vollständige Wettericon-Sammlung** - Inklusive neues `snowy.png`
 - ✅ Error Handling
 - ✅ Performance Optimizations
@@ -132,5 +132,5 @@ Diese Weather App stellt ein **hervorragendes Beispiel** für moderne React Nati
 ---
 
 *Bewertung erstellt am: 27. August 2025*  
-*Letzte Aktualisierung: 20. September 2025*  
+*Letzte Aktualisierung: 7. August 2026*
 *Reviewer: GitHub Copilot*

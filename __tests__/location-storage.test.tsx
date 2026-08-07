@@ -15,13 +15,15 @@ jest.mock('expo-location', () => ({
   Accuracy: { Balanced: 3 },
 }));
 
+jest.mock('../src/components/RadarViewer', () => ({
+  __esModule: true,
+  default: () => null,
+}));
+
 // Helper to mount App freshly with isolated modules so our mocks apply
 const renderApp = async () => {
   let tree: TestRenderer.ReactTestRenderer;
   await act(async () => {
-    jest.isolateModules(() => {
-      // fresh require to pick up current mocks
-    });
     const App = require('../App').default; // eslint-disable-line @typescript-eslint/no-var-requires
     tree = TestRenderer.create(<App />);
   });
@@ -34,7 +36,6 @@ const d = enableUI ? describe : describe.skip;
 
 d('Geolocation and storage behavior', () => {
   beforeEach(() => {
-    jest.resetModules();
     jest.clearAllMocks();
     // Reset AsyncStorage mock state
     // @ts-expect-error jest mock has clear
@@ -81,12 +82,21 @@ d('Geolocation and storage behavior', () => {
     });
     mockReverseGeocodeAsync.mockResolvedValue([{ city: 'München', country: 'DE' }]);
 
-    // Mock fetch to resolve
+    // Open-Meteo current weather and daily forecast use the same response shape.
     (global as any).fetch = jest.fn().mockResolvedValue({ ok: true, json: async () => ({
-      name: 'Munich',
-      weather: [{ id: 800, main: 'Clear', description: 'clear sky', icon: '01d' }],
-      main: { temp: 20, feels_like: 20, temp_min: 18, temp_max: 24, humidity: 50 },
-      sys: { country: 'DE' },
+      current: {
+        temperature_2m: 20,
+        apparent_temperature: 20,
+        relative_humidity_2m: 50,
+        weather_code: 0,
+        wind_speed_10m: 2,
+      },
+      daily: {
+        time: ['2026-08-07'],
+        temperature_2m_min: [18],
+        temperature_2m_max: [24],
+        weather_code: [0],
+      },
     }) });
 
     const tree = await renderApp();
@@ -104,13 +114,19 @@ d('Geolocation and storage behavior', () => {
       btn!.props.onPress();
     });
 
-    // Advance timers to allow two backoff delays and the final success
+    // Advance recursively scheduled retry timers and their promise callbacks.
     await act(async () => {
-      jest.advanceTimersByTime(400 + 800 + 10);
+      await jest.runAllTimersAsync();
     });
 
     // It should have attempted 3 times
     expect(mockGetCurrentPositionAsync).toHaveBeenCalledTimes(3);
+
+    const weatherUrl = ((global as any).fetch as jest.Mock).mock.calls
+      .map((call) => call[0] as string)
+      .find((url) => url.includes('api.open-meteo.com/v1/forecast'));
+    expect(weatherUrl).toContain('latitude=48.137');
+    expect(weatherUrl).not.toContain('appid=');
 
     // Location input should be updated to the reverse geocode display
     const input = tree.root.findByType(TextInput);
@@ -155,32 +171,17 @@ d('Geolocation and storage behavior', () => {
     const list = JSON.parse(String(raw || '[]')) as string[];
     expect(list.length).toBe(5);
     expect(list[0].toLowerCase()).toBe('berlin');
-    // Oldest of first five should be dropped; initial order: Berlin, Hamburg, Munich, Cologne, Frankfurt
-    // After adding Stuttgart and then berlin again, expect Hamburg to remain but Berlin deduped at front
-    expect(list).not.toContain('Stuttgart'); // because berlin duplicate re-ordered and we keep only 5
+    // The newest unique location remains; the oldest surviving entry is removed.
+    expect(list).toContain('Stuttgart');
+    expect(list).not.toContain('Hamburg');
   });
 
   it('can remove a saved location via rendered list', async () => {
-    // Override FlatList mock to render items for this test
-    jest.resetModules();
-    jest.doMock('react-native/Libraries/Lists/FlatList', () => {
-      const React = require('react');
-      return function SimpleFlatList(props: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
-        return React.createElement(
-          'View',
-          {},
-          (props.data || []).map((item: any, index: number) =>
-            React.createElement('Item', { key: String(index) }, props.renderItem({ item }))
-          )
-        );
-      };
-    });
-
     // Pre-populate storage
     await AsyncStorage.setItem('@saved_locations', JSON.stringify(['Berlin', 'Hamburg']));
     mockRequestForegroundPermissionsAsync.mockResolvedValue({ status: 'granted' });
 
-    const App = require('../App').default; // re-require with new mocks
+    const App = require('../App').default;
     let tree: TestRenderer.ReactTestRenderer;
     await act(async () => {
       tree = TestRenderer.create(<App />);
@@ -193,8 +194,9 @@ d('Geolocation and storage behavior', () => {
     expect(removeButtons.length).toBeGreaterThan(0);
 
     await act(async () => {
-      const btn = removeButtons[0].parent as any; // TouchableOpacity parent mock
-      // @ts-expect-error test env
+      let btn = removeButtons[0] as any;
+      while (btn && typeof btn.props?.onPress !== 'function') btn = btn.parent;
+      expect(btn).toBeTruthy();
       btn.props.onPress();
       await Promise.resolve();
     });

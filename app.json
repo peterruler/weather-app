@@ -5,9 +5,28 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
+    "updates": {
+      "enabled": false,
+      "checkAutomatically": "NEVER",
+      "fallbackToCacheTimeout": 0
+    },
     "assetBundlePatterns": ["**/*"],
-    "ios": { "supportsTablet": true },
-    "android": {},
-    "web": { "bundler": "metro" }
+    "plugins": [
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Expo Weather verwendet deinen Standort, um lokales Wetter und den Niederschlagsradar anzuzeigen."
+        }
+      ]
+    ],
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "permissions": ["ACCESS_COARSE_LOCATION", "ACCESS_FINE_LOCATION"]
+    },
+    "web": {
+      "bundler": "metro"
+    }
   }
 }

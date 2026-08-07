@@ -1,113 +1,67 @@
-import { nearestRadarId, sortSitesByDistance, buildSingleRadarFrameURLs } from '../src/lib/radarLookup';
-import { buildCompositeTileURL, getCompositeTimeline, getLatestRadarTimestamp, latLonToTile } from '../src/lib/radarComposite';
-import { pickAvailableSwissRadar } from '../src/lib/pickAvailableSwissRadar';
+import {
+  buildBaseMapTileURL,
+  buildRadarTileURL,
+  getRadarTimeline,
+  latLonToTile,
+  latLonToTilePoint,
+  normalizeTileCoordinates,
+  RAINVIEWER_MAPS_URL,
+} from '../src/lib/radarComposite';
 
-describe('radar lookup helpers', () => {
-  const sites = [
-    { id: 'A', name: 'A', lat: 0, lon: 0 },
-    { id: 'B', name: 'B', lat: 0, lon: 10 },
-    { id: 'C', name: 'C', lat: 10, lon: 0 },
-  ];
-
-  it('sorts sites by distance', () => {
-    const sorted = sortSitesByDistance(0, 1, sites);
-    expect(sorted.map((s) => s.id)).toEqual(['A', 'B', 'C']);
+describe('radar map helpers', () => {
+  it('converts coordinates to deterministic tile positions', () => {
+    expect(latLonToTile(52.52, 13.405, 7)).toEqual({ x: 68, y: 41 });
+    const point = latLonToTilePoint(52.52, 13.405, 7);
+    expect(point.x).toBeGreaterThan(68);
+    expect(point.y).toBeGreaterThan(41);
   });
 
-  it('picks nearest radar id', () => {
-    const near = nearestRadarId(9, 0, sites);
-    expect(near.id).toBe('C');
+  it('wraps horizontal coordinates and clamps vertical coordinates', () => {
+    expect(normalizeTileCoordinates(-1, -4, 2)).toEqual({ x: 3, y: 0 });
+    expect(normalizeTileCoordinates(4, 9, 2)).toEqual({ x: 0, y: 3 });
   });
 
-  it('builds single radar frame URLs with formats', () => {
-    const urls = buildSingleRadarFrameURLs('ABC', {
-      images: [
-        { time: 1, formats: ['gif'] },
-        { time: 2, formats: ['png'] },
-        { time: 3, formats: [] },
-      ],
-    });
-    expect(urls[0]).toContain('/1_0_source.gif');
-    expect(urls[1]).toContain('/2_0_source.png');
-    expect(urls[2]).toContain('/3_0_source.png');
+  it('builds CARTO and documented RainViewer tile URLs', () => {
+    expect(buildBaseMapTileURL(68, 41, 7)).toBe('https://a.basemaps.cartocdn.com/light_all/7/68/41.png');
+    expect(buildRadarTileURL('https://tilecache.rainviewer.com/', '/v2/radar/123456', 68, 41, 7))
+      .toBe('https://tilecache.rainviewer.com/v2/radar/123456/256/7/68/41/2/1_1.png');
   });
 });
 
-describe('composite helpers', () => {
+describe('RainViewer timeline', () => {
   beforeEach(() => jest.clearAllMocks());
 
-  it('latLonToTile is deterministic', () => {
-    const t = latLonToTile(52.52, 13.405, 7);
-    expect(t).toEqual({ x: expect.any(Number), y: expect.any(Number) });
-  });
-
-  it('buildCompositeTileURL uses given time and coords', () => {
-    const url = buildCompositeTileURL(123456, 52.52, 13.405, 7);
-    expect(url).toContain('/radar/123456/256/7/');
-    expect(url).toContain('/2/1_1.png');
-  });
-
-  it('getCompositeTimeline and getLatestRadarTimestamp parse weather-maps', async () => {
+  it('uses host and paths from the API and keeps the newest frames', async () => {
     const maps = {
+      host: 'https://tilecache.rainviewer.com',
       radar: {
-        past: [{ time: 1, path: 'a' }, { time: 2, path: 'b' }],
-        nowcast: [{ time: 3, path: 'c' }],
+        past: [
+          { time: 1, path: '/v2/radar/1' },
+          { time: 2, path: '/v2/radar/2' },
+        ],
+        nowcast: [{ time: 3, path: '/v2/radar/3' }],
       },
     };
-    // @ts-expect-error define fetch mock
     global.fetch = jest.fn().mockResolvedValue({ ok: true, json: async () => maps });
-    const timeline = await getCompositeTimeline(2);
-    expect(timeline).toEqual([2, 3]);
-    const latest = await getLatestRadarTimestamp();
-    expect(latest).toBe(3);
+
+    await expect(getRadarTimeline(2)).resolves.toEqual({
+      host: maps.host,
+      frames: [
+        { time: 2, path: '/v2/radar/2', kind: 'past' },
+        { time: 3, path: '/v2/radar/3', kind: 'nowcast' },
+      ],
+    });
+    expect(global.fetch).toHaveBeenCalledWith(RAINVIEWER_MAPS_URL, expect.objectContaining({ signal: expect.anything() }));
   });
 
-  it('getCompositeTimeline returns [] on !ok and errors', async () => {
-    // @ts-expect-error define fetch mock
-    global.fetch = jest.fn().mockResolvedValueOnce({ ok: false });
-    const timeline = await getCompositeTimeline(2);
-    expect(timeline).toEqual([]);
+  it('reports HTTP and empty-response failures', async () => {
+    global.fetch = jest.fn().mockResolvedValueOnce({ ok: false, status: 503 });
+    await expect(getRadarTimeline()).rejects.toThrow('Status 503');
 
-    // error/exception path
-    // @ts-expect-error define fetch mock
-    global.fetch = jest.fn().mockRejectedValueOnce(new Error('network'));
-    const timelineErr = await getCompositeTimeline(2);
-    expect(timelineErr).toEqual([]);
-  });
-
-  it('getLatestRadarTimestamp returns null on !ok and errors', async () => {
-    // @ts-expect-error define fetch mock
-    global.fetch = jest.fn().mockResolvedValueOnce({ ok: false });
-    const ts = await getLatestRadarTimestamp();
-    expect(ts).toBeNull();
-
-    // error/exception path
-    // @ts-expect-error define fetch mock
-    global.fetch = jest.fn().mockRejectedValueOnce(new Error('network'));
-    const tsErr = await getLatestRadarTimestamp();
-    expect(tsErr).toBeNull();
-  });
-});
-
-describe('pickAvailableSwissRadar', () => {
-  it('returns first ok swiss id', async () => {
-    const impl = jest.fn()
-      .mockResolvedValueOnce({ ok: false })
-      .mockResolvedValueOnce({ ok: true });
-    // @ts-expect-error define fetch mock
-    global.fetch = jest.fn((url: string) => impl(url));
-    const id = await pickAvailableSwissRadar(50);
-    expect(id).toBeTruthy();
-  });
-
-  it('returns null when none ok (including exceptions)', async () => {
-    const impl = jest.fn()
-      .mockResolvedValue({ ok: false })
-      .mockRejectedValueOnce(new Error('abort'))
-      .mockResolvedValue({ ok: false });
-    // @ts-expect-error define fetch mock
-    global.fetch = jest.fn((url: string) => impl(url));
-    const id = await pickAvailableSwissRadar(5);
-    expect(id).toBeNull();
+    global.fetch = jest.fn().mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ host: 'https://example.test', radar: { past: [] } }),
+    });
+    await expect(getRadarTimeline()).rejects.toThrow('keine Radarframes');
   });
 });

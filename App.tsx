@@ -23,28 +23,19 @@ import { NavigationContainer, DarkTheme as NavDarkTheme, DefaultTheme as NavLigh
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createMaterialTopTabNavigator } from "@react-navigation/material-top-tabs";
 import { enableScreens } from 'react-native-screens';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { RootStackParamList, RootTabParamList } from "./src/navigation/types";
 import WeatherScreenView from "./src/screens/WeatherScreen";
 import ForecastScreenView from "./src/screens/ForecastScreen";
 import CardsScreenView from "./src/screens/CardsScreen";
-
-type WeatherResponse = {
-  name: string;
-  weather: { id: number; main: string; description: string; icon: string }[];
-  main: {
-    temp: number;
-    feels_like: number;
-    temp_min: number;
-    temp_max: number;
-    humidity: number;
-  };
-  wind?: { speed: number };
-  sys?: { country?: string };
-};
+import {
+  fetchForecastAtCoordinates,
+  fetchWeatherAtCoordinates,
+  resolvePlace,
+  type WeatherResponse,
+} from "./src/lib/weatherApi";
 
 type InfoRow = { key: string; label: string; value: string };
-
-const API_KEY = "ca4ab639490b58b65967f8a7816cb8d4";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const Tab = createMaterialTopTabNavigator<RootTabParamList>();
@@ -67,6 +58,7 @@ export default function App() {
     cond: string;
   }[]>([]);
   const [radarInfo, setRadarInfo] = useState<{ id: string; name: string } | null>(null);
+  const handleRadarChosen = useCallback((info: { id: string; name: string }) => setRadarInfo(info), []);
 
   const isDark = themeMode === "dark" || (!themeMode && systemScheme === "dark");
 
@@ -132,18 +124,14 @@ export default function App() {
     setError(null);
     setData(null);
     try {
-      const encoded = encodeURIComponent(loc.trim());
-      const url = `https://api.openweathermap.org/data/2.5/weather?q=${encoded}&units=metric&appid=${API_KEY}`;
-      const res = await fetch(url);
-      if (!res.ok) {
-        const msg =
-          res.status === 404
-            ? "Ort wurde nicht gefunden."
-            : `Anfrage fehlgeschlagen: ${res.status}`;
-        throw new Error(msg);
-      }
-      const json: WeatherResponse = await res.json();
-      setData(json);
+      const place = await resolvePlace(loc);
+      const weather = await fetchWeatherAtCoordinates(
+        place.latitude,
+        place.longitude,
+        place.name,
+        place.country,
+      );
+      setData(weather);
     } catch (e: any) {
       setError(e?.message || "Etwas ist schiefgelaufen.");
     } finally {
@@ -158,50 +146,15 @@ export default function App() {
       setForecastError(null);
       setForecastDays([]);
       try {
-        let url = "";
+        let latitude = query.lat;
+        let longitude = query.lon;
         if (query.city) {
-          const encoded = encodeURIComponent(query.city.trim());
-          url = `https://api.openweathermap.org/data/2.5/forecast?q=${encoded}&units=metric&appid=${API_KEY}`;
-        } else {
-          url = `https://api.openweathermap.org/data/2.5/forecast?lat=${query.lat}&lon=${query.lon}&units=metric&appid=${API_KEY}`;
+          const place = await resolvePlace(query.city);
+          latitude = place.latitude;
+          longitude = place.longitude;
         }
-        const res = await fetch(url);
-        if (!res.ok) throw new Error(`Vorhersage fehlgeschlagen: ${res.status}`);
-        const json = await res.json();
-        // Group by day, compute min/max and pick noon condition
-        const byDay: Record<string, { mins: number[]; maxs: number[]; conds: string[] }>= {};
-        for (const item of json.list || []) {
-          const dt = new Date((item.dt as number) * 1000);
-          const key = dt.toISOString().slice(0, 10);
-          const temp = item.main?.temp as number;
-          const cond = (item.weather?.[0]?.description as string) || "";
-          if (!byDay[key]) byDay[key] = { mins: [], maxs: [], conds: [] };
-          byDay[key].mins.push(item.main?.temp_min ?? temp);
-          byDay[key].maxs.push(item.main?.temp_max ?? temp);
-          // Prefer midday conditions: collect all and we will pick around 12:00 later
-          byDay[key].conds.push(`${dt.getHours()}:${cond}`);
-        }
-        const days = Object.keys(byDay)
-          .sort()
-          .slice(0, 5)
-          .map((k) => {
-            const d = byDay[k];
-            const min = Math.round(Math.min(...d.mins));
-            const max = Math.round(Math.max(...d.maxs));
-            // pick condition closest to 12:00
-            let chosen = d.conds[0] ?? "";
-            let bestDelta = 999;
-            for (const c of d.conds) {
-              const h = parseInt(c.split(":")[0] || "0", 10);
-              const delta = Math.abs(12 - h);
-              if (delta < bestDelta) {
-                bestDelta = delta;
-                chosen = c;
-              }
-            }
-            const cond = chosen.split(":").slice(1).join(":");
-            return { date: k, min, max, cond };
-          });
+        if (latitude == null || longitude == null) return;
+        const days = await fetchForecastAtCoordinates(latitude, longitude);
         setForecastDays(days);
       } catch (e: any) {
         setForecastError(e?.message || "Vorhersage konnte nicht geladen werden.");
@@ -213,19 +166,14 @@ export default function App() {
   );
 
   const fetchWeatherByCoords = useCallback(
-    async (lat: number, lon: number) => {
+    async (lat: number, lon: number, name: string, country?: string) => {
       setLoading(true);
       setError(null);
       setData(null);
       try {
-        const url = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=metric&appid=${API_KEY}`;
-        const res = await fetch(url);
-        if (!res.ok) {
-          throw new Error(`Anfrage fehlgeschlagen: ${res.status}`);
-        }
-        const json: WeatherResponse = await res.json();
-        setData(json);
-        const display = [json.name, json.sys?.country].filter(Boolean).join(", ");
+        const weather = await fetchWeatherAtCoordinates(lat, lon, name, country);
+        setData(weather);
+        const display = [weather.name, weather.sys?.country].filter(Boolean).join(", ");
         if (display) setLocation(display);
       } catch (e: any) {
         setError(e?.message || "Etwas ist schiefgelaufen.");
@@ -287,20 +235,21 @@ export default function App() {
         return;
       }
       const pos = await getCurrentPositionWithRetry();
-      await fetchWeatherByCoords(pos.coords.latitude, pos.coords.longitude);
-      // Try reverse geocode for display + saving
+      let placeName = "Aktueller Standort";
+      let country: string | undefined;
+      let display = "";
       try {
         const places = await Location.reverseGeocodeAsync({
           latitude: pos.coords.latitude,
           longitude: pos.coords.longitude,
         });
         const p = places?.[0];
-        const display = [p?.city || p?.subregion, p?.country].filter(Boolean).join(", ");
-        if (display) {
-          setLocation(display);
-          saveLocation(display);
-        }
+        placeName = p?.city || p?.subregion || placeName;
+        country = p?.isoCountryCode || p?.country || undefined;
+        display = [placeName, country].filter(Boolean).join(", ");
       } catch {}
+      await fetchWeatherByCoords(pos.coords.latitude, pos.coords.longitude, placeName, country);
+      if (display) saveLocation(display);
     } catch (e: any) {
       setError(e?.message || "Konnte Standort nicht ermitteln.");
     }
@@ -309,7 +258,7 @@ export default function App() {
   const conditions = data?.weather?.[0]?.main ?? "";
   const conditionDesc = (data?.weather?.[0]?.description ?? "").toLowerCase();
 
-  // Deutsch-Übersetzungen für OpenWeatherMap
+  // Deutsch-Übersetzungen für die normalisierten Wetterbedingungen
   const translateWeather = useCallback((w?: { id?: number; main?: string; description?: string }) => {
     const id = w?.id ?? 0;
     const main = (w?.main ?? "").toLowerCase();
@@ -690,8 +639,9 @@ export default function App() {
   const navTheme = isDark ? NavDarkTheme : NavLightTheme;
 
   return (
-    <NavigationContainer theme={navTheme}>
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <SafeAreaProvider>
+      <NavigationContainer theme={navTheme}>
+        <Stack.Navigator screenOptions={{ headerShown: false }}>
         <Stack.Screen name="RootTabs">
           {() => (
             <Tab.Navigator
@@ -759,7 +709,7 @@ export default function App() {
                       setThemeMode(m);
                       try { await AsyncStorage.setItem("@theme_mode", m); } catch {}
                     }}
-                    onRadarChosen={(info) => setRadarInfo(info)}
+                    onRadarChosen={handleRadarChosen}
                     radarInfo={radarInfo}
                   />
                 )}
@@ -767,8 +717,9 @@ export default function App() {
             </Tab.Navigator>
           )}
         </Stack.Screen>
-      </Stack.Navigator>
-    </NavigationContainer>
+        </Stack.Navigator>
+      </NavigationContainer>
+    </SafeAreaProvider>
   );
 }
 
@@ -801,7 +752,6 @@ StyleSheet.create({
   bgImage: {
     width: '100%',
     height: '100%',
-    resizeMode: 'cover',
   },
   container: {
     flex: 1,

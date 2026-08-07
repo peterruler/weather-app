@@ -1,6 +1,3 @@
-import '@testing-library/jest-native/extend-expect';
-
-// Basic fetch mock
 if (!global.fetch) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (global as any).fetch = jest.fn();
@@ -44,6 +41,18 @@ jest.mock('@react-navigation/material-top-tabs', () => {
 });
 
 jest.mock('react-native-screens', () => ({ enableScreens: () => {} }));
+
+jest.mock('react-native-safe-area-context', () => {
+  const React = require('react');
+  const MockView = ({ children, ...props }: any) => React.createElement('SafeAreaView', props, children);
+  return {
+    SafeAreaProvider: MockView,
+    SafeAreaView: MockView,
+    SafeAreaConsumer: ({ children }: any) => children({ top: 0, right: 0, bottom: 0, left: 0 }),
+    useSafeAreaInsets: () => ({ top: 0, right: 0, bottom: 0, left: 0 }),
+    useSafeAreaFrame: () => ({ x: 0, y: 0, width: 390, height: 844 }),
+  };
+});
 
 // Mock expo-location globally to avoid ESM parsing in App import; specific tests can override
 jest.mock('expo-location', () => ({
@@ -95,15 +104,14 @@ try {
   });
 } catch {}
 
-// Simplify FlatList to avoid VirtualizedList internals in tests
-try {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  require.resolve('react-native/Libraries/Lists/FlatList');
-  jest.mock('react-native/Libraries/Lists/FlatList', () => {
-    const React = require('react');
-    const Mock = function MockFlatList() { return null; };
-    return { __esModule: true, default: Mock };
-  });
-} catch {}
-
-// Note: rely on jest-expo's built-in React Native mocks
+// Render FlatList items synchronously to avoid VirtualizedList timers after renderer tests finish.
+jest.mock('react-native/Libraries/Lists/FlatList', () => {
+  const React = require('react');
+  const MockFlatList = (props: any) => {
+    const children = (props.data ?? []).map((item: any, index: number) =>
+      React.createElement(React.Fragment, { key: props.keyExtractor?.(item, index) ?? String(index) }, props.renderItem?.({ item, index })),
+    );
+    return React.createElement('FlatList', props, children);
+  };
+  return { __esModule: true, default: MockFlatList };
+});

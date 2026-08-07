@@ -1,5 +1,6 @@
 import React from 'react';
-import { ActivityIndicator, FlatList, Image, ImageBackground, SafeAreaView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, FlatList, Image, ImageBackground, Linking, Pressable, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 type Props = {
   styles: any;
@@ -137,6 +138,9 @@ export default function WeatherScreen(props: Props) {
                   );
                 }}
               />
+              <Pressable accessibilityRole="link" onPress={() => Linking.openURL('https://open-meteo.com/')}>
+                <Text style={[styles.muted, styles.alwaysWhite, { textAlign: 'center' }]}>Wetterdaten: Open-Meteo</Text>
+              </Pressable>
             </View>
           ) : (
             <View style={styles.center}>

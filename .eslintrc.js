@@ -5,7 +5,7 @@ module.exports = {
     'universe/shared/typescript-analysis',
   ],
   parserOptions: {
-    project: ['./tsconfig.json'],
+    project: ['./tsconfig.eslint.json'],
     tsconfigRootDir: __dirname,
   },
   rules: {
