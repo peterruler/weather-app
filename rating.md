@@ -44,7 +44,7 @@ Eine sehr gut umgesetzte Wetter-App, die moderne Entwicklungspraktiken befolgt u
 - ✅ **Persistente Standort-Speicherung** - Bis zu 5 Favoriten-Orte gespeichert
 - ✅ **Dark Mode Support** - Automatische Anpassung an Systemeinstellungen
 - ✅ **5-Tage-Wettervorhersage** - Erweiterte Prognose mit detaillierten Tageswerten
-- ✅ **Wetter-Karten & Radar** - Animiertes RainViewer-Komposit mit CARTO/OpenStreetMap-Grundkarte
+- ✅ **Wetter-Karten & Radar** - Animiertes RainViewer-Komposit mit CARTO/OpenStreetMap-Grundkarte; für die Grundkarte ist `EXPO_PUBLIC_CARTO_API_KEY` erforderlich, RainViewer bleibt schlüsselfrei
 - ✅ Aktuelle Wetterdaten (Temperatur, Luftfeuchtigkeit, Wind)
 - ✅ **Erweiterte Wettericons** - Vollständiger Icon-Satz inklusive Schnee-Wetter (`snowy.png`)
 - ✅ **Deutsche Wetterbeschreibungen** - Vollständige Lokalisierung aller Bedingungen

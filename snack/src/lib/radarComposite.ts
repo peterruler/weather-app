@@ -1,5 +1,5 @@
 export const RAINVIEWER_MAPS_URL = 'https://api.rainviewer.com/public/weather-maps.json';
-export const CARTO_TILE_HOST = 'https://a.basemaps.cartocdn.com/light_all';
+export const CARTO_TILE_HOST = 'https://basemaps.cartocdn.com/rastertiles/light_all';
 
 export type RadarFrame = {
   time: number;
@@ -45,9 +45,16 @@ export function normalizeTileCoordinates(x: number, y: number, zoom: number): { 
   };
 }
 
-export function buildBaseMapTileURL(x: number, y: number, zoom: number): string {
+export function buildBaseMapTileURL(
+  x: number,
+  y: number,
+  zoom: number,
+  apiKey = process.env.EXPO_PUBLIC_CARTO_API_KEY,
+): string {
+  const key = apiKey?.trim();
+  if (!key) throw new Error('Die CARTO-Grundkarte benötigt einen API-Schlüssel.');
   const tile = normalizeTileCoordinates(x, y, zoom);
-  return `${CARTO_TILE_HOST}/${zoom}/${tile.x}/${tile.y}.png`;
+  return `${CARTO_TILE_HOST}/${zoom}/${tile.x}/${tile.y}.png?key=${encodeURIComponent(key)}`;
 }
 
 export function buildRadarTileURL(

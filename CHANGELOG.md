@@ -21,6 +21,18 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ### Changed
 
+- Added an app-wide copyright and CARTO-key reuse warning, an accessible legal-notice modal with Peter Stroessler's contact address, and `LEGAL.md`; mirrored the UI and wording in Snack.
+- Documented educational-only operation of this demonstration, legally qualified warranty/liability exclusions, and the distinction between the MIT source-code license and non-transferable demo credentials. Preserved contributor copyrights and added Peter's 2026 contribution copyright.
+- Added configurable CARTO basemap authentication through `EXPO_PUBLIC_CARTO_API_KEY`, an empty `.env.example`, and encoded `?key=` tile URLs; synchronized the Snack mirror and documented local key setup and client-side visibility.
+- Kept RainViewer radar and map attribution visible when the basemap key is missing, without requesting unauthenticated CARTO tiles; added regression tests for key encoding, missing configuration, and provider credential separation.
+- Documented the fresh-cache web rebuild and localhost startup commands, port selection, and stopping the development server; verified the SDK-57 app opens in the browser after rebuilding.
+- Made updates to `CLAUDE.md` and `README.md` mandatory for every agent-prompted repository change, including documentation tasks; documented test preservation, behavior-test maintenance, UI-enabled validation for migrations/UI changes, and explicit reporting of unverified checks.
+- Migrated the root app and asset-free Snack mirror from Expo SDK 54 to SDK 57.0.27, React Native 0.86.3, React 19.2.3, and TypeScript 6.0.3, including SDK-matched native libraries and Jest/Babel tooling.
+- Updated the reproducible npm lockfile, SDK alignment helper, and Node.js requirement to 22.13+; documented iOS 16.4+, Xcode 26.4+, Android SDK 36, New Architecture, and development-client rebuild requirements.
+- Updated Jest's compatible optional React Server Components peer to patched 19.1.9 and added React Native's separate 0.86.3 Jest preset.
+- Removed the obsolete `assetBundlePatterns` app configuration; runtime updates remain disabled.
+- Applied compatible transitive security updates, including the critical `shell-quote` fix. The remaining npm audit findings are upstream Expo/Metro/Jest tooling advisories (high and moderate findings; no critical).
+
 - Aligned and exact-pinned the app to Expo SDK 54.0.36, React Native 0.81.5, and React 19.1 for the saved Snack and the currently supported physical-device Expo Go workflow.
 - Updated React Navigation, testing, and TypeScript packages and added repeatable validation scripts.
 - Aligned React Navigation's native package to the patch required by its current nested elements package.

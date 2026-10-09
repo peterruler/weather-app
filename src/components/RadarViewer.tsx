@@ -20,6 +20,7 @@ type Props = {
   lat?: number | null;
   lon?: number | null;
   styles: any;
+  cartoApiKey?: string;
   onRadarChosen?: (info: { id: string; name: string }) => void;
 };
 
@@ -35,7 +36,7 @@ const MAP_HEIGHT = 280;
 const TILE_SIZE = 256;
 const ZOOM = 7;
 
-export default function RadarViewer({ lat, lon, styles, onRadarChosen }: Props) {
+export default function RadarViewer({ lat, lon, styles, onRadarChosen, cartoApiKey = process.env.EXPO_PUBLIC_CARTO_API_KEY }: Props) {
   const [timeline, setTimeline] = useState<RadarTimeline | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -45,6 +46,7 @@ export default function RadarViewer({ lat, lon, styles, onRadarChosen }: Props) 
   const [reloadKey, setReloadKey] = useState(0);
 
   const hasCoordinates = Number.isFinite(lat) && Number.isFinite(lon);
+  const baseMapApiKey = cartoApiKey?.trim();
 
   useEffect(() => {
     let active = true;
@@ -141,6 +143,9 @@ export default function RadarViewer({ lat, lon, styles, onRadarChosen }: Props) 
 
   return (
     <View style={{ marginTop: 12 }}>
+      {!baseMapApiKey && (
+        <Text style={[styles.muted, styles.alwaysWhite]}>Die Grundkarte ist noch nicht eingerichtet. Die Radardaten werden trotzdem angezeigt.</Text>
+      )}
       <View
         accessibilityLabel="Niederschlagsradar für den gewählten Ort"
         onLayout={(event) => setMapWidth(Math.max(1, Math.round(event.nativeEvent.layout.width)))}
@@ -148,7 +153,9 @@ export default function RadarViewer({ lat, lon, styles, onRadarChosen }: Props) 
       >
         {mapTiles.map((tile) => (
           <View key={tile.key} style={{ position: 'absolute', left: tile.left, top: tile.top, width: TILE_SIZE, height: TILE_SIZE }}>
-            <Image source={{ uri: buildBaseMapTileURL(tile.x, tile.y, ZOOM) }} style={{ width: TILE_SIZE, height: TILE_SIZE }} />
+            {baseMapApiKey && (
+              <Image source={{ uri: buildBaseMapTileURL(tile.x, tile.y, ZOOM, baseMapApiKey) }} style={{ width: TILE_SIZE, height: TILE_SIZE }} />
+            )}
             <Image
               source={{ uri: buildRadarTileURL(timeline.host, currentFrame.path, tile.x, tile.y, ZOOM) }}
               style={{ position: 'absolute', left: 0, top: 0, width: TILE_SIZE, height: TILE_SIZE }}

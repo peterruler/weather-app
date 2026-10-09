@@ -3,7 +3,7 @@
     "name": "Expo Weather Snack",
     "slug": "expo-weather-snack",
     "version": "1.0.0",
-    "sdkVersion": "54.0.0",
+    "sdkVersion": "57.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
     "updates": {
@@ -23,7 +23,10 @@
       "supportsTablet": true
     },
     "android": {
-      "permissions": ["ACCESS_COARSE_LOCATION", "ACCESS_FINE_LOCATION"]
+      "permissions": [
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION"
+      ]
     }
   }
 }

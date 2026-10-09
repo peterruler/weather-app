@@ -28,6 +28,7 @@ import { RootStackParamList, RootTabParamList } from "./src/navigation/types";
 import WeatherScreenView from "./src/screens/WeatherScreen";
 import ForecastScreenView from "./src/screens/ForecastScreen";
 import CardsScreenView from "./src/screens/CardsScreen";
+import LegalNotice from './src/components/LegalNotice';
 import {
   fetchForecastAtCoordinates,
   fetchWeatherAtCoordinates,
@@ -643,6 +644,7 @@ export default function App() {
 
   return (
     <SafeAreaProvider>
+      <View style={{ flex: 1, backgroundColor: theme.bg }}>
       <NavigationContainer theme={navTheme}>
         <Stack.Navigator screenOptions={{ headerShown: false }}>
         <Stack.Screen name="RootTabs">
@@ -722,6 +724,8 @@ export default function App() {
         </Stack.Screen>
         </Stack.Navigator>
       </NavigationContainer>
+      <LegalNotice isDark={isDark} />
+      </View>
     </SafeAreaProvider>
   );
 }
