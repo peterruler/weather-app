@@ -21,6 +21,9 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ### Changed
 
+- Fixed radar controls clipped by the legal footer on short mobile screens: the whole radar tab now scrolls, including playback, frame controls and attribution, while the footer stays visible in its own layout area. Mirrored the fix locally and in the saved SDK-55 Snack, strengthened the screen regression, and verified responsive browser behavior at 390×667 and 320×568 with all 32 tests passing.
+- Added the official Expo SDK-57 Android download-page link to both READMEs, retaining the official release-assets link for manual APK downloads when Expo directs the current version to Google Play.
+- Documented the requested Android Expo Go setup: uninstall the old app first, manually install the SDK-57-compatible APK from official Expo release assets, then scan the local LAN QR code. Updated both READMEs and the contributor guide; clarified that APK installation applies only to Android.
 - Migrated back from SDK 55 to SDK 57.0.27 at the user's request, aligning React Native 0.86.3, React/test renderer 19.2.3, native libraries, TypeScript 6.0.3, Babel/Jest tooling, the separate React Native Jest preset, Node 22.13+ prerequisites, both Expo configurations, the exact-pinned Snack mirror, and the alignment helper. Preserved the three-tab navigation fix and all 32 behavior tests; documented that the saved hosted Snack remains constrained by Expo's deployed runtimes.
 
 - Added `?sdkVersion=57.0.0` to the README demo URL at the user's request, retaining the SDK-55 saved-app state and unsupported-runtime fallback explanation.

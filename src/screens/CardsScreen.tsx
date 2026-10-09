@@ -1,5 +1,5 @@
 import React from 'react';
-import { Image, ImageBackground, Linking, Pressable, Text, View, TouchableOpacity } from 'react-native';
+import { Image, ImageBackground, Linking, Pressable, ScrollView, Text, View, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import RadarViewer from '../components/RadarViewer';
 
@@ -27,54 +27,56 @@ export default function CardsScreen({ styles, bgImage, data, heroImage, translat
   return (
     <SafeAreaView style={styles.safe}>
       <ImageBackground source={bgImage ?? undefined} style={styles.bg} resizeMode="cover" imageStyle={styles.bgImage}>
-        <View style={styles.container}>
-          <View style={{ flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', gap: 8 }}>
-            <Text style={styles.title}>Niederschlagsradar</Text>
-          </View>
-          <View style={styles.content}>
-            {data ? (
-              <View style={styles.headerRow}>
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.location}>
-                    {data.name}
-                    {data.sys?.country ? `, ${data.sys.country}` : ''}
-                  </Text>
-                  <Text style={styles.condition}>{translateWeather(data.weather?.[0]).deMain}</Text>
-                </View>
-                <Image source={heroImage} style={styles.hero} resizeMode="contain" />
-              </View>
-            ) : (
-              <View>
-                <Text style={styles.location}>{DEFAULT_RADAR_LOCATION.name}</Text>
-                <Text style={[styles.muted, styles.alwaysWhite]}>
-                  Suche im Wetter-Tab einen Ort oder nutze GPS, um den Radar darauf zu zentrieren.
-                </Text>
-              </View>
-            )}
-            {data && (
-              <Pressable accessibilityRole="link" onPress={() => Linking.openURL('https://open-meteo.com/')}>
-                <Text style={[styles.muted, styles.alwaysWhite]}>Wetterdaten: Open-Meteo</Text>
-              </Pressable>
-            )}
-            <View style={styles.actionsRow}>
-              <TouchableOpacity
-                onPress={() => {
-                  const next = isDark ? 'light' : 'dark';
-                  setThemeMode(next);
-                }}
-                style={[styles.button, styles.secondaryButton]}
-              >
-                <Text style={[styles.buttonText, styles.secondaryButtonText]}>{isDark ? '☀️ Hell' : '🌙 Dunkel'}</Text>
-              </TouchableOpacity>
+        <ScrollView style={{ flex: 1 }} contentContainerStyle={{ flexGrow: 1 }}>
+          <View style={[styles.container, { flex: 0, paddingBottom: 16 }]}>
+            <View style={{ flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', gap: 8 }}>
+              <Text style={styles.title}>Niederschlagsradar</Text>
             </View>
-            <RadarViewer lat={lat} lon={lon} styles={styles} onRadarChosen={onRadarChosen} />
+            <View style={[styles.content, { flex: 0 }]}>
+              {data ? (
+                <View style={styles.headerRow}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.location}>
+                      {data.name}
+                      {data.sys?.country ? `, ${data.sys.country}` : ''}
+                    </Text>
+                    <Text style={styles.condition}>{translateWeather(data.weather?.[0]).deMain}</Text>
+                  </View>
+                  <Image source={heroImage} style={styles.hero} resizeMode="contain" />
+                </View>
+              ) : (
+                <View>
+                  <Text style={styles.location}>{DEFAULT_RADAR_LOCATION.name}</Text>
+                  <Text style={[styles.muted, styles.alwaysWhite]}>
+                    Suche im Wetter-Tab einen Ort oder nutze GPS, um den Radar darauf zu zentrieren.
+                  </Text>
+                </View>
+              )}
+              {data && (
+                <Pressable accessibilityRole="link" onPress={() => Linking.openURL('https://open-meteo.com/')}>
+                  <Text style={[styles.muted, styles.alwaysWhite]}>Wetterdaten: Open-Meteo</Text>
+                </Pressable>
+              )}
+              <View style={styles.actionsRow}>
+                <TouchableOpacity
+                  onPress={() => {
+                    const next = isDark ? 'light' : 'dark';
+                    setThemeMode(next);
+                  }}
+                  style={[styles.button, styles.secondaryButton]}
+                >
+                  <Text style={[styles.buttonText, styles.secondaryButtonText]}>{isDark ? '☀️ Hell' : '🌙 Dunkel'}</Text>
+                </TouchableOpacity>
+              </View>
+              <RadarViewer lat={lat} lon={lon} styles={styles} onRadarChosen={onRadarChosen} />
+            </View>
+            {radarInfo?.name && (
+              <Text style={[styles.muted, styles.alwaysWhite, { textAlign: 'center', paddingVertical: 8 }]}>
+                Radarquelle: {radarInfo.name}
+              </Text>
+            )}
           </View>
-          {radarInfo?.name && (
-            <Text style={[styles.muted, styles.alwaysWhite, { textAlign: 'center', paddingVertical: 8 }]}>
-              Radarquelle: {radarInfo.name}
-            </Text>
-          )}
-        </View>
+        </ScrollView>
       </ImageBackground>
     </SafeAreaView>
   );

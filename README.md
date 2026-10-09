@@ -10,11 +10,22 @@ Die Demo ist unter [github.com/peterruler/weather-app auf Expo Snack](https://sn
 
 **SDK-57-Migration am 09.10.2026:** Die lokale App und der Ordner `snack` verwenden SDK 57 (`sdkVersion: 57.0.0`, npm-Paket `expo@57.0.27`), React Native 0.86.3 und React 19.2.3. Die drei Tabs liegen weiterhin direkt im `NavigationContainer`; der überflüssige Native-Stack und `react-native-screens` bleiben entfernt. Wetter, Prognose, Radar, rechtliche Hinweise und die lokale CARTO-Konfiguration bleiben erhalten.
 
+**Mobile Radaransicht:** Der gesamte Inhalt im Tab **Wetter-Karten** lässt sich vertikal scrollen. Auf kleinen oder niedrigen Bildschirmen nach oben wischen, um **Abspielen/Pause**, den Bildwechsel und die Quellenangaben über den Footer zu scrollen. Der rechtliche Footer bleibt sichtbar und belegt einen eigenen Bereich. Browserprüfungen bei 390 × 667 und 320 × 568 Pixeln bestätigen die Erreichbarkeit; Abspielen, Pause und Bildwechsel wurden bei 320 × 568 bedient. Die Screen-Regression prüft, dass Radar und Quellenhinweis im selben Scrollbereich liegen. Alle 32 UI-Tests, Typecheck, Lint, Standard-Unit-Tests, 21 Expo-Doctor-Prüfungen sowie Root- und Snack-Webexport bestehen. Die UI-Korrektur gilt auch für den gespeicherten SDK-55-Snack; sein SDK bleibt unverändert. Physische Geräte sind weiterhin gesondert zu prüfen.
+
 **Gehostete Snack-Laufzeit:** Der gespeicherte Online-Snack wurde zuvor auf SDK 55 geprüft. Die letzte Prüfung von `https://snack.expo.dev/?sdkVersion=57.0.0` am 09.10.2026 meldete „The requested Expo version is not yet supported“ und fiel auf SDK 54 zurück; im Wähler standen nur SDK 50–55. Der Demo-Link fordert SDK 57 an, stellt aber keine fehlende Laufzeit bereit. Die lokale Migration veröffentlicht den gespeicherten Snack nicht automatisch. SDK-57-Abhängigkeiten erst dann in der gehosteten Vorschau speichern, wenn dort eine tatsächliche SDK-57-Laufzeit angeboten wird. Bis dahin die lokale SDK-57-Vorschau verwenden.
 
 Unten in der Snack-Statusleiste lässt sich neben **Expo** eine angebotene Version wählen. Laut [offizieller Konfiguration](https://github.com/expo/snack/blob/main/website/src/client/configs/sdk.tsx) kann `?sdkVersion=…` bereits bereitgestellte, ausgeblendete Vorschauversionen anfordern. Neue SDKs benötigen laut [Maintainer-Anleitung](https://github.com/expo/snack/blob/main/docs/expo-sdk-upgrade.md) Expo-seitige Änderungen und Deployments an Laufzeit, SDK-Unterstützung und Website.
 
-Für ein Telefon eine **SDK-57-kompatible Expo-Go-Version** oder einen neu gebauten SDK-57-Development-Build verwenden. Passende Clients stehen unter [Expo Go](https://expo.dev/go). Expo Go nach einem SDK-Wechsel vollständig schließen, erneut öffnen und den lokalen QR-Code scannen:
+Für ein Telefon eine **SDK-57-kompatible Expo-Go-Version** oder einen neu gebauten SDK-57-Development-Build verwenden. Passende Clients stehen unter [Expo Go](https://expo.dev/go).
+
+**Wichtiger Hinweis für Android: Expo Go manuell per APK installieren.** Für die hier beschriebene Einrichtung zuerst die bisherige Expo-Go-App vom Telefon deinstallieren und danach die zu SDK 57 passende APK installieren:
+
+1. Die alte **Expo-Go-App deinstallieren**.
+2. Die [offizielle Expo-Downloadseite für SDK 57 auf Android](https://expo.dev/go?sdkVersion=57&platform=android&device=true) öffnen. Für die manuelle APK-Installation in den [offiziellen Expo-Go-Releases](https://github.com/expo/expo-go-releases/releases) eine Version für **Expo SDK 57** öffnen und unter **Assets** die Android-Datei mit der Endung `.apk` herunterladen. Die Expo-Downloadseite kann für die aktuelle Version stattdessen zum Play Store verweisen; die Release-Seite bietet die APK-Dateien.
+3. Die heruntergeladene APK auf dem Android-Telefon öffnen und installieren. Falls Android nachfragt, die Installation für die verwendete Download-App erlauben.
+4. Expo Go starten und den QR-Code des lokalen SDK-57-Servers scannen. Computer und Telefon müssen im selben WLAN sein.
+
+Diese APK-Anleitung gilt für **Android**, nicht für iPhone oder iPad. Die Expo-Go-Version muss zum Projekt-SDK passen; siehe [Expo-Hilfe bei Versionskonflikten](https://docs.expo.dev/troubleshooting/expo-go-version-mismatch/). Den lokalen Server starten mit:
 
 ```bash
 ./run.sh start --go --lan --port 8082

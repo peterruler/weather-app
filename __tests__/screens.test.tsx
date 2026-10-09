@@ -36,6 +36,7 @@ const mockReactNative = () => {
       Linking: { openURL: jest.fn() },
       Pressable: mk('Pressable'),
       SafeAreaView: mk('SafeAreaView'),
+      ScrollView: mk('ScrollView'),
       Text: mk('Text'),
       TextInput: mk('TextInput'),
       TouchableOpacity: mk('TouchableOpacity'),
@@ -175,6 +176,11 @@ d('Cards and Forecast Screens', () => {
     const radar = (tree as any).root.findByType('RadarViewer');
     expect(radar.props.lat).toBeCloseTo(47.3769);
     expect(radar.props.lon).toBeCloseTo(8.5417);
+    // Radar and attribution must share the scroll area so they remain reachable on short screens.
+    // @ts-expect-error set above
+    const scroll = (tree as any).root.findByType('ScrollView');
+    expect(scroll.findByType('RadarViewer')).toBe(radar);
+    expect(scroll.findAllByType(require('react-native').Text).map((t: any) => t.props.children).flat(Infinity).join(' ')).toContain('Radarquelle:');
     // @ts-expect-error
     await act(async () => { (tree as any).unmount(); });
   });
