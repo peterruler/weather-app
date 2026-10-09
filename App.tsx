@@ -20,11 +20,9 @@ import * as Location from "expo-location";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { computeSavedAfterRemove, computeSavedAfterSave, getCurrentPositionWithRetry } from "./src/utils";
 import { NavigationContainer, DarkTheme as NavDarkTheme, DefaultTheme as NavLightTheme } from "@react-navigation/native";
-import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createMaterialTopTabNavigator } from "@react-navigation/material-top-tabs";
-import { enableScreens } from 'react-native-screens';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { RootStackParamList, RootTabParamList } from "./src/navigation/types";
+import { RootTabParamList } from "./src/navigation/types";
 import WeatherScreenView from "./src/screens/WeatherScreen";
 import ForecastScreenView from "./src/screens/ForecastScreen";
 import CardsScreenView from "./src/screens/CardsScreen";
@@ -38,9 +36,7 @@ import {
 
 type InfoRow = { key: string; label: string; value: string };
 
-const Stack = createNativeStackNavigator<RootStackParamList>();
 const Tab = createMaterialTopTabNavigator<RootTabParamList>();
-enableScreens(true);
 
 export default function App() {
   const systemScheme = useColorScheme();
@@ -642,86 +638,80 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <View style={{ flex: 1, backgroundColor: theme.bg }}>
-      <NavigationContainer theme={navTheme}>
-        <Stack.Navigator screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="RootTabs">
-          {() => (
-            <Tab.Navigator
-              screenOptions={{
-                tabBarIndicatorStyle: { backgroundColor: theme.buttonText },
-                tabBarStyle: { backgroundColor: "transparent" },
-              }}
-            >
-              <Tab.Screen name="Weather" options={{ title: "Wetter" }}>
-                {() => (
-                  <WeatherScreenView
-                    styles={styles}
-                    isDark={isDark}
-                    themeMode={themeMode}
-                    setThemeMode={async (m) => {
-                      setThemeMode(m);
-                      try { await AsyncStorage.setItem("@theme_mode", m); } catch {}
-                    }}
-                    theme={theme}
-                    bgImage={bgImage}
-                    location={location}
-                    setLocation={setLocation}
-                    onSubmit={onSubmit}
-                    useMyLocation={useMyLocation}
-                    saveLocation={saveLocation}
-                    saved={saved}
-                    onPressSaved={onPressSaved}
-                    removeLocation={removeLocation}
-                    loading={loading}
-                    error={error}
-                    data={data}
-                    translateWeather={translateWeather}
-                    heroImage={heroImage}
-                    infoList={infoList}
-                    radarInfo={radarInfo}
-                  />
-                )}
-              </Tab.Screen>
-              <Tab.Screen name="Forecast" options={{ title: "Fünf Tages Prognose" }}>
-                {() => (
-                  <ForecastScreenView
-                    styles={styles}
-                    isDark={isDark}
-                    bgImage={bgImage}
-                    data={data}
-                    location={location}
-                    forecastLoading={forecastLoading}
-                    forecastError={forecastError}
-                    forecastDays={forecastDays}
-                    fetchForecast={fetchForecast}
-                    translateWeather={translateWeather}
-                  />
-                )}
-              </Tab.Screen>
-              <Tab.Screen name="Cards" options={{ title: "Wetter-Karten" }}>
-                {() => (
-                  <CardsScreenView
-                    styles={styles}
-                    bgImage={bgImage}
-                    data={data}
-                    heroImage={heroImage}
-                    translateWeather={translateWeather}
-                    isDark={isDark}
-                    setThemeMode={async (m) => {
-                      setThemeMode(m);
-                      try { await AsyncStorage.setItem("@theme_mode", m); } catch {}
-                    }}
-                    onRadarChosen={handleRadarChosen}
-                    radarInfo={radarInfo}
-                  />
-                )}
-              </Tab.Screen>
-            </Tab.Navigator>
-          )}
-        </Stack.Screen>
-        </Stack.Navigator>
-      </NavigationContainer>
-      <LegalNotice isDark={isDark} />
+        <NavigationContainer theme={navTheme}>
+          <Tab.Navigator
+            screenOptions={{
+              tabBarIndicatorStyle: { backgroundColor: theme.buttonText },
+              tabBarStyle: { backgroundColor: "transparent" },
+            }}
+          >
+            <Tab.Screen name="Weather" options={{ title: "Wetter" }}>
+              {() => (
+                <WeatherScreenView
+                  styles={styles}
+                  isDark={isDark}
+                  themeMode={themeMode}
+                  setThemeMode={async (m) => {
+                    setThemeMode(m);
+                    try { await AsyncStorage.setItem("@theme_mode", m); } catch {}
+                  }}
+                  theme={theme}
+                  bgImage={bgImage}
+                  location={location}
+                  setLocation={setLocation}
+                  onSubmit={onSubmit}
+                  useMyLocation={useMyLocation}
+                  saveLocation={saveLocation}
+                  saved={saved}
+                  onPressSaved={onPressSaved}
+                  removeLocation={removeLocation}
+                  loading={loading}
+                  error={error}
+                  data={data}
+                  translateWeather={translateWeather}
+                  heroImage={heroImage}
+                  infoList={infoList}
+                  radarInfo={radarInfo}
+                />
+              )}
+            </Tab.Screen>
+            <Tab.Screen name="Forecast" options={{ title: "Fünf Tages Prognose" }}>
+              {() => (
+                <ForecastScreenView
+                  styles={styles}
+                  isDark={isDark}
+                  bgImage={bgImage}
+                  data={data}
+                  location={location}
+                  forecastLoading={forecastLoading}
+                  forecastError={forecastError}
+                  forecastDays={forecastDays}
+                  fetchForecast={fetchForecast}
+                  translateWeather={translateWeather}
+                />
+              )}
+            </Tab.Screen>
+            <Tab.Screen name="Cards" options={{ title: "Wetter-Karten" }}>
+              {() => (
+                <CardsScreenView
+                  styles={styles}
+                  bgImage={bgImage}
+                  data={data}
+                  heroImage={heroImage}
+                  translateWeather={translateWeather}
+                  isDark={isDark}
+                  setThemeMode={async (m) => {
+                    setThemeMode(m);
+                    try { await AsyncStorage.setItem("@theme_mode", m); } catch {}
+                  }}
+                  onRadarChosen={handleRadarChosen}
+                  radarInfo={radarInfo}
+                />
+              )}
+            </Tab.Screen>
+          </Tab.Navigator>
+        </NavigationContainer>
+        <LegalNotice isDark={isDark} />
       </View>
     </SafeAreaProvider>
   );

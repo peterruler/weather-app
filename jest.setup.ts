@@ -20,16 +20,6 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-jest.mock('@react-navigation/native-stack', () => {
-  const React = require('react');
-  const create = () => ({
-    Navigator: ({ children }: any) => React.createElement(React.Fragment, null, children),
-    Screen: ({ children }: any) =>
-      React.createElement(React.Fragment, null, typeof children === 'function' ? children({}) : children),
-  });
-  return { __esModule: true, createNativeStackNavigator: create };
-});
-
 jest.mock('@react-navigation/material-top-tabs', () => {
   const React = require('react');
   const create = () => ({
@@ -39,8 +29,6 @@ jest.mock('@react-navigation/material-top-tabs', () => {
   });
   return { __esModule: true, createMaterialTopTabNavigator: create };
 });
-
-jest.mock('react-native-screens', () => ({ enableScreens: () => {} }));
 
 jest.mock('react-native-safe-area-context', () => {
   const React = require('react');

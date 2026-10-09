@@ -6,18 +6,27 @@ Eine deutschsprachige Wetter-App für iOS, Android, Expo Go und Web. Sie zeigt a
 
 ## Expo Snack
 
-Die gespeicherte Vorschau ist unter [github.com/peterruler/weather-app auf Expo Snack](https://snack.expo.dev/@petethegreat/github.com-peterruler-weather-app) erreichbar. Ein gespeicherter Snack übernimmt lokale Repository-Änderungen nicht automatisch; nach einem Push muss die GitHub-Version dort erneut importiert beziehungsweise gespeichert werden.
+Die Demo ist unter [github.com/peterruler/weather-app auf Expo Snack](https://snack.expo.dev/@petethegreat/github.com-peterruler-weather-app?sdkVersion=57.0.0) erreichbar. Der Link fordert SDK 57 an; der zuletzt geprüfte Online-Snack verwendet SDK 55, und Snack kann bei fehlender SDK-57-Unterstützung auf eine andere Version zurückfallen (siehe unten). Ein gespeicherter Snack übernimmt lokale Repository-Änderungen nicht automatisch; nach einem Push muss die GitHub-Version dort erneut importiert beziehungsweise gespeichert werden.
 
-Der direkte Root-Import trifft derzeit einen Fehler im Expo-Importserver, sobald Repository-Assets weitergeleitet werden (`Failed to upload file asset`, Validierungsfehler `"$": Required`). Die Dateien selbst sind gültig und lassen sich über denselben Expo-Endpunkt einzeln sowie parallel hochladen. Für einen zuverlässigen Neuimport enthält das Repository deshalb die assetfreie SDK-57-Ansicht im Ordner `snack`:
+**SDK-57-Migration am 09.10.2026:** Die lokale App und der Ordner `snack` verwenden SDK 57 (`sdkVersion: 57.0.0`, npm-Paket `expo@57.0.27`), React Native 0.86.3 und React 19.2.3. Die drei Tabs liegen weiterhin direkt im `NavigationContainer`; der überflüssige Native-Stack und `react-native-screens` bleiben entfernt. Wetter, Prognose, Radar, rechtliche Hinweise und die lokale CARTO-Konfiguration bleiben erhalten.
 
-1. In Snack **Import git repository** öffnen.
-2. Repository URL: `https://github.com/peterruler/weather-app`
-3. **Show advanced options** wählen.
-4. Folder path: `snack`
-5. Branch name: `main`
-6. **Import repository** wählen und den importierten Snack speichern.
+**Gehostete Snack-Laufzeit:** Der gespeicherte Online-Snack wurde zuvor auf SDK 55 geprüft. Die letzte Prüfung von `https://snack.expo.dev/?sdkVersion=57.0.0` am 09.10.2026 meldete „The requested Expo version is not yet supported“ und fiel auf SDK 54 zurück; im Wähler standen nur SDK 50–55. Der Demo-Link fordert SDK 57 an, stellt aber keine fehlende Laufzeit bereit. Die lokale Migration veröffentlicht den gespeicherten Snack nicht automatisch. SDK-57-Abhängigkeiten erst dann in der gehosteten Vorschau speichern, wenn dort eine tatsächliche SDK-57-Laufzeit angeboten wird. Bis dahin die lokale SDK-57-Vorschau verwenden.
 
-Der Snack-Ordner nutzt in Expo gespeicherte, inhaltsadressierte Bild-URLs statt binärer Repository-Assets. `snack/app.json` setzt `sdkVersion` ausdrücklich auf `57.0.0`, deaktiviert Laufzeit-Updates, `snack/package.json` hält alle Laufzeitabhängigkeiten exakt auf dem geprüften SDK-57-Stand und `snack/index.js` ermöglicht eine isolierte lokale Web-Prüfung. Der Root der lokalen App bleibt davon unberührt und verwendet weiterhin seine lokalen Grafiken.
+Unten in der Snack-Statusleiste lässt sich neben **Expo** eine angebotene Version wählen. Laut [offizieller Konfiguration](https://github.com/expo/snack/blob/main/website/src/client/configs/sdk.tsx) kann `?sdkVersion=…` bereits bereitgestellte, ausgeblendete Vorschauversionen anfordern. Neue SDKs benötigen laut [Maintainer-Anleitung](https://github.com/expo/snack/blob/main/docs/expo-sdk-upgrade.md) Expo-seitige Änderungen und Deployments an Laufzeit, SDK-Unterstützung und Website.
+
+Für ein Telefon eine **SDK-57-kompatible Expo-Go-Version** oder einen neu gebauten SDK-57-Development-Build verwenden. Passende Clients stehen unter [Expo Go](https://expo.dev/go). Expo Go nach einem SDK-Wechsel vollständig schließen, erneut öffnen und den lokalen QR-Code scannen:
+
+```bash
+./run.sh start --go --lan --port 8082
+```
+
+Computer und Telefon müssen im selben WLAN sein. Der localhost-Webserver auf Port 8081 ist vom Telefon aus nicht erreichbar. Auf einem physischen iPhone gegebenenfalls Expo CLI und Expo Go mit demselben Expo-Konto anmelden; siehe [Expo: App auf dem Gerät öffnen](https://docs.expo.dev/get-started/start-developing/). Physische Geräte sind gesondert zu testen.
+
+Der direkte Root-Import traf einen Asset-Weiterleitungsfehler im Expo-Importserver (`Failed to upload file asset`). Die assetfreie Importansicht liegt daher im Ordner `snack`, verwendet inhaltsadressierte Expo-Bild-URLs, `sdkVersion: 57.0.0`, deaktivierte Laufzeit-Updates und SDK-57-Abhängigkeiten. `snack/index.js` erlaubt eine isolierte lokale Web-Prüfung.
+
+Sobald Snack SDK 57 unterstützt: **Import git repository** öffnen, Repository URL `https://github.com/peterruler/weather-app` eingeben, unter **Show advanced options** Folder path `snack` und Branch name `main` setzen, importieren, tatsächlich **v57.0.0** auswählen und speichern. Der reine Node-CLI-Helfer `scripts/upgrade-expo.js` gehört nur ins lokale Repository und nicht in den Online-Snack.
+
+**Validierung am 09.10.2026:** Saubere Installation mit `npm ci`, vollständige Peer-Prüfung, Typecheck, Lint, alle 32 UI-Tests, die 16 Standard-Unit-Tests, SDK-Ausrichtung, Expo-Abhängigkeitsprüfung und alle 21 Expo-Doctor-Prüfungen bestanden. Web-, iOS- und Android-JavaScript-Bundles sowie der separate Snack-Webexport wurden erfolgreich erstellt. Im Browser wurden Zürich-Ortssuche, Wetterwerte, fünf Prognosetage, Tab-Wechsel, Radarframe-Wechsel, CARTO-Grundkarte und Öffnen/Schließen der rechtlichen Hinweise geprüft. Web läuft auf `http://localhost:8081`; der LAN-Server auf Port 8082 meldet `sdkVersion: 57.0.0` und `runtimeVersion: exposdk:57.0.0`. Dies bestätigt keine nativen Binär-Builds oder Ausführung auf einem physischen Telefon.
 
 ## Technischer Stand
 
@@ -31,7 +40,7 @@ Der Snack-Ordner nutzt in Expo gespeicherte, inhaltsadressierte Bild-URLs statt 
 
 ## Voraussetzungen
 
-- Node.js 22.13 oder neuer
+- Node.js 22.13.0 oder neuer
 - npm (wird mit Node.js installiert)
 - Für ein echtes Gerät: eine Expo-Go-Version mit SDK-57-Unterstützung und Gerät/Computer im selben Netzwerk
 - Für native iOS-Builds: Xcode 26.4 oder neuer; iOS 16.4 oder neuer auf dem Gerät
@@ -64,9 +73,9 @@ Die Open-Meteo-Daten stehen unter CC BY 4.0. Die App zeigt deshalb bei allen Wet
 
 `install.sh` prüft die Node-Version, installiert exakt den Lockfile-Stand mit `npm ci` und kontrolliert die Expo-SDK-Kompatibilität.
 
-Expo-Pakete und native Bibliotheken sind exakt auf die von SDK 57.0.27 freigegebenen Versionen gesetzt. `.npmrc` erzwingt auch bei späteren Installationen exakte Versionen. Eine pauschale Aktualisierung kann Expo Go oder den Snack inkompatibel machen.
+Die lokalen Expo-Pakete und nativen Bibliotheken sind exakt auf die von SDK 57.0.27 freigegebenen Versionen gesetzt. `.npmrc` erzwingt auch bei späteren Installationen exakte Versionen. Eine pauschale Aktualisierung kann Expo Go oder den Snack inkompatibel machen.
 
-Das Testwerkzeug `jest-expo@57.0.5` verwendet das separate `@react-native/jest-preset@0.86.3`. Sein optionaler React-Server-Components-Peer bleibt auf `react-server-dom-webpack@19.1.9`: Diese gepatchte Version erfüllt die Jest-Peer-Anforderung und unterstützt React 19.2.3. Expos Empfehlung `~19.2.4` setzt eine neuere React-Patchversion voraus; deshalb bleibt ausschließlich dieses Testpaket von `expo install --check` ausgenommen.
+Die Tests verwenden `jest-expo@57.0.5`, `babel-preset-expo@57.0.14`, `@react-native/jest-preset@0.86.3` und den zu React passenden `react-test-renderer@19.2.3`. Der optionale Test-Peer `react-server-dom-webpack@19.1.9` bleibt als kompatible gepatchte Version erhalten. Expos Empfehlung `~19.2.4` setzt eine neuere React-Patchversion voraus; deshalb bleibt ausschließlich dieses Testpaket von `expo install --check` ausgenommen.
 
 Die aus dem referenzierten Frontend-Snack abgeleitete Upgrade-Hilfe ändert standardmäßig nichts:
 
@@ -79,7 +88,7 @@ npm run doctor
 
 `expo:align:write` nur für eine beabsichtigte Wiederherstellung dieses SDK-Stands verwenden. Ein Wechsel auf ein neueres Expo SDK erfordert eine Anpassung des Skripts und der Dokumentation sowie einen vollständigen Validierungslauf.
 
-Die Migration von SDK 54 auf 57 aktualisiert auch die nativen Gesten-, Pager-, Animations- und Safe-Area-Bibliotheken. Vorhandene Development Builds müssen neu gebaut werden. Dieses Repository enthält keine eingecheckten `ios/`- oder `android/`-Projekte; `npm run ios` beziehungsweise `npm run android` erzeugt sie mit der aktuellen Expo-Konfiguration. SDK 57 verwendet ausschließlich die New Architecture. `expo prebuild` regeneriert native Verzeichnisse standardmäßig; eigene native Änderungen vorher sichern. Bei Xcode 27 zusätzlich die dort dokumentierte Scene-Unterstützung über `expo-build-properties` aktivieren. Siehe [Expo SDK 57](https://expo.dev/changelog/sdk-57) und die [SDK-Kompatibilitätstabelle](https://docs.expo.dev/versions/latest/).
+Die Migration von SDK 55 auf 57 aktualisiert auch die nativen Gesten-, Pager-, Animations- und Safe-Area-Bibliotheken sowie TypeScript und Jest/Babel. Vorhandene Development Builds müssen neu gebaut werden. Dieses Repository enthält keine eingecheckten `ios/`- oder `android/`-Projekte; `npm run ios` beziehungsweise `npm run android` erzeugt sie mit der aktuellen Expo-Konfiguration. SDK 57 verwendet ausschließlich die New Architecture. Bereits generierte native Projekte nach Sicherung eigener Änderungen mit der SDK-57-Konfiguration neu erzeugen. Die Hermes-v1-Option bleibt ungesetzt. Siehe [Expo SDK 57](https://expo.dev/changelog/sdk-57) und die [SDK-57-Kompatibilitätstabelle](https://docs.expo.dev/versions/v57.0.0/).
 
 ## Update-Verhalten
 
@@ -163,7 +172,9 @@ In den Geräte-Einstellungen die Standortberechtigung für Expo Go beziehungswei
 
 ### Expo Go meldet eine inkompatible SDK-Version
 
-`./install.sh` erneut ausführen, mit `npm run expo:align` die exakten Versionen prüfen und danach `./run.sh clear` starten. Dieses Projekt ist bewusst auf SDK 57.0.27 ausgerichtet. Falls die installierte Expo-Go-Version SDK 57 nicht mehr unterstützt, einen passenden Development Build verwenden; die deaktivierten OTA-Updates können die Expo-Go-Kompatibilität nicht erzwingen.
+Die lokale App benötigt SDK-57-kompatibles Expo Go oder einen SDK-57-Development-Build. Den QR-Code des lokalen LAN-Servers auf Port 8082 verwenden. Der gespeicherte Online-Snack hat eine getrennte Laufzeit: Der URL-Parameter allein garantiert SDK 57 nicht. Im Wähler die tatsächlich angebotene und ausgewählte Version prüfen; fehlt SDK 57, die lokale Vorschau verwenden. Nach einem SDK-Wechsel Expo Go vollständig schließen und den neuen QR-Code scannen.
+
+Bei lokalen Versionsabweichungen `./install.sh` erneut ausführen, mit `npm run expo:align` die exakten Versionen prüfen und danach `./run.sh clear` starten. Dieses Projekt ist bewusst auf SDK 57 ausgerichtet. Deaktivierte OTA-Updates können die Expo-Go-Kompatibilität nicht erzwingen.
 
 ### Gerät erreicht den lokalen Entwicklungsserver nicht
 
@@ -177,7 +188,7 @@ Falls nur die Grundkarte fehlt oder alte Tiles noch „API key required“ zeige
 
 ### `npm audit` meldet Probleme
 
-Das Projekt hält Metro-PostCSS per Override auf der gepatchten Version 8.5.26. Kompatible transitive Sicherheitsupdates wurden bei der SDK-57-Migration eingespielt. Der Audit meldet weiterhin hohe und moderate Befunde in den Werkzeug-Abhängigkeiten von Expo, Metro und Jest; kritische Befunde sind behoben. Die verbleibenden Ursachen sind `braces`, `node-forge`, `sprintf-js` und `uuid`. Weitere Meldungen mit `npm audit` prüfen. `npm audit fix --force` nicht verwenden, weil dies die geprüften SDK-57-Versionen ungeplant verändern kann. Expo-Versionen nur über den dokumentierten, vollständigen Upgrade-Weg aktualisieren.
+Das Projekt hält Metro-PostCSS per Override auf der gepatchten Version 8.5.26. Der SDK-57-Lockfile wurde mit `npm ci` und vollständiger Peer-Prüfung validiert. `npm audit` meldet 61 Befunde (49 hoch, 12 moderat, keine kritischen). Der Audit meldet weiterhin hohe und moderate Befunde in den Werkzeug-Abhängigkeiten von Expo, Metro und Jest; kritische Befunde sind behoben. Die verbleibenden Ursachen sind `braces`, `node-forge`, `sprintf-js` und `uuid`. Weitere Meldungen mit `npm audit` prüfen. `npm audit fix --force` nicht verwenden, weil dies die geprüften SDK-57-Versionen ungeplant verändern kann. Expo-Versionen nur über den dokumentierten, vollständigen Upgrade-Weg aktualisieren.
 
 ## Projektstruktur
 
